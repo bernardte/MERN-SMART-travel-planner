@@ -255,13 +255,11 @@ response.ts
 ## `app.ts`
 
 Contains:
-
 * express app
 * middleware
 * routes
 
 Example:
-
 ```ts
 const app = express();
 app.use(cors());
