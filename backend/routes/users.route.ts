@@ -6,7 +6,7 @@ import { protectRoute } from "../middleware/protect_route.middleware";
 const router = express.Router();
 
 router.post("/register-account", asyncHandler(usersController.registerAccount));
-router.post("/login", protectRoute, asyncHandler(usersController.loginAccount));
+router.post("/login", asyncHandler(usersController.loginAccount));
 router.post("/logout", protectRoute, asyncHandler(usersController.logoutAccount));
 
 export default router;

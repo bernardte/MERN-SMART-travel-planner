@@ -6,27 +6,37 @@ import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/error_api_response";
 
 interface DecodedToken extends JwtPayload {
-  _id: string;
+  userId: string;
 }
 
 export const protectRoute = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies?.accessToken;
-    if(!token){
-        throw new AppError(401, "Unauthorized");
+    const token = req.cookies.accessToken;
+    if (!token) {
+      throw new AppError(401, "Unauthorized");
     }
 
+    //! decoded jwt token
     const decoded = jwt.verify(token, env.JWT_ACCESS_TOKEN) as DecodedToken;
+    if (!decoded?.userId) {
+      throw new AppError(401, "Unauthorized");
+    }
+    //! select all user attrbute exclude only password.
+    const user = await User.findById(decoded.userId).select("-password");
 
-    const user = await User.findById(decoded._id).select('-password');
-
-    if(!user) throw new AppError(401, "User not found, authorization denied");
+    if (!user) throw new AppError(401, "User not found, authorization denied");
 
 
     req.user = user;
     next();
 
   } catch (error) {
-    next(error)
+    if (
+      error instanceof jwt.TokenExpiredError ||
+      error instanceof jwt.JsonWebTokenError
+    ) {
+      return next(new AppError(401, "Unauthorized"));
+    }
+    next(error);
   }
 };

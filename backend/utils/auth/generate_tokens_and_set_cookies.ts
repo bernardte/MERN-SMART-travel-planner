@@ -21,7 +21,7 @@ function generateTokensAndSetCookies(userId: Types.ObjectId, res: Response) {
 
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: 2 * 60 * 60 * 1000,
     sameSite: env.NODE_ENV === "production" ? "none" : "lax",
     secure: env.NODE_ENV === "production", //? return boolean  ? true : false
   });

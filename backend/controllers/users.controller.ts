@@ -39,7 +39,7 @@ const registerAccount = async (
   });
 
   if (existingUser) {
-    throw new AppError(409, "Email or usernamealready in use.");
+    throw new AppError(409, "Email or username already in use.");
   }
   
   const salt = await bcrypt.genSalt(10);
@@ -78,11 +78,12 @@ const loginAccount = async (
   const user = await User.findOne({
     email,
   });
-
+  
+  
   if (!user) {
     throw new AppError(401, "Invalid email or password.");
   }
-
+  
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
@@ -102,13 +103,6 @@ const logoutAccount = async (
   req: Request<{}, {}, UserLoginDTO>,
   res: Response,
 ) => {
-  const user = req.user;
-  const token = req.cookies.accessToken || req.cookies.refreshToken;
-
-  if(!token){
-    throw new AppError(401, "You're not login");
-  }
-
   res.clearCookie("accessToken", {
     httpOnly: true,
     sameSite: env.NODE_ENV == "production" ? "none" : "lax",

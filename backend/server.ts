@@ -8,6 +8,7 @@ import { env } from "./config/env";
 import { connectDB } from "./config/db";
 import userRouter from "./routes/users.route";
 import { errorHandlingMiddleware } from "./middleware/error_handling.middleware";
+
 connectDB();
 const app = express();
 const PORT = env.PORT;
@@ -17,13 +18,14 @@ const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: env.FRONTEND_URL,
     credentials: true,
   }),
 );
+
+app.use(cookieParser()); //get the cookie from request and set the cookie in the response.
 app.use(express.json());
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-app.use(cookieParser()); //get the cookie from request and set the cookie in the response.
 //! create temp directory for file uploads
 app.use(
   fileupload({
