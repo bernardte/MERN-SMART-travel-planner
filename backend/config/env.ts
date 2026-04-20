@@ -8,6 +8,9 @@ export const env = createEnv({
     PORT: z.string().min(1, "PORT is required"),
     FRONTEND_URL: z.url().min(1, "FRONTEND_URL is required"),
     MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
+    JWT_ACCESS_TOKEN: z.string().min(1, "Access token is requried"),
+    JWT_REFRESH_TOKEN: z.string().min(1, "Refresh token is required"),
+    NODE_ENV: z.string().min(1, "Node environment is required"),
   },
 
   runtimeEnv: process.env,

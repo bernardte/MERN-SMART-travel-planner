@@ -1,12 +1,13 @@
 import express from "express";
-import fileupload from "express-fileupload"; 
+import fileupload from "express-fileupload";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "./config/env";
 import { connectDB } from "./config/db";
-
+import userRouter from "./routes/users.route";
+import { errorHandlingMiddleware } from "./middleware/error_handling.middleware";
 connectDB();
 const app = express();
 const PORT = env.PORT;
@@ -22,7 +23,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-app.use(cookieParser());//get the cookie from request and set the cookie in the response.
+app.use(cookieParser()); //get the cookie from request and set the cookie in the response.
 //! create temp directory for file uploads
 app.use(
   fileupload({
@@ -35,6 +36,10 @@ app.use(
   }),
 );
 
+app.use("/api/users", userRouter);
+
+//! Error handling middleware should be the last middleware for getting all the controller errors.
+app.use(errorHandlingMiddleware);
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-})
+  console.log(`Server is running on port ${PORT}`);
+});
