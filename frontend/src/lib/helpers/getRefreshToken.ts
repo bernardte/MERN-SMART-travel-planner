@@ -1,5 +1,4 @@
 import useAuthStore from "@/stores/useAuthStore";
-import axiosInstance from "../axios";
 import { refreshTokenApi } from "@/api/auth.api";
 
 let refreshPromise: Promise<string> | null = null;
