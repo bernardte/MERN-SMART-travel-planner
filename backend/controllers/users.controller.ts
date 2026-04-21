@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import User, { type IUser } from "../models/user.model";
+import User from "../models/user.model";
 import { successApiResponse } from "../utils/succes_api_response";
 import { AppError } from "../utils/error_api_response";
 import bcrypt from "bcryptjs";
@@ -25,8 +25,8 @@ const registerAccount = async (
     throw new AppError(400, "All fields are required.");
   }
 
-  if (password.length < 6) {
-    throw new AppError(409, "Password must be at least 6 characters long");
+  if (password.length < 8) {
+    throw new AppError(409, "Password must be at least 8 characters long");
   }
 
   if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
@@ -83,7 +83,7 @@ const loginAccount = async (
   if (!user) {
     throw new AppError(401, "Invalid email or password.");
   }
-  
+
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {

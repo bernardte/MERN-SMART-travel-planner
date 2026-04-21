@@ -5,7 +5,7 @@ import { env } from "../config/env";
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/error_api_response";
 
-interface DecodedToken extends JwtPayload {
+export interface DecodedToken extends JwtPayload {
   userId: string;
 }
 

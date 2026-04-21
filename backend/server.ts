@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { env } from "./config/env";
 import { connectDB } from "./config/db";
 import userRouter from "./routes/users.route";
+import refreshTokenRouter from "./routes/refreshToken.route";
 import { errorHandlingMiddleware } from "./middleware/error_handling.middleware";
 
 connectDB();
@@ -38,6 +39,7 @@ app.use(
   }),
 );
 
+app.use("/api/refreshToken", refreshTokenRouter);
 app.use("/api/users", userRouter);
 
 //! Error handling middleware should be the last middleware for getting all the controller errors.
