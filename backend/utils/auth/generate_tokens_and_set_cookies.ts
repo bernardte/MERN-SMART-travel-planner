@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 import type { Response } from "express";
 import { env } from "../../config/env";
-import { Types } from "mongoose";
+import { type ObjectId } from "mongoose";
 
-function generateTokensAndSetCookies(userId: Types.ObjectId, res: Response) {
+function generateTokensAndSetCookies(userId: ObjectId, res: Response) {
   const accessToken = jwt.sign({ userId }, env.JWT_ACCESS_TOKEN, {
     expiresIn: "2h",
   });

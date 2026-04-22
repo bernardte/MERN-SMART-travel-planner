@@ -46,7 +46,7 @@ const AuthenticationPage = () => {
           variants={leftVariants}
           className="flex h-full w-full items-center justify-center bg-linear-to-b from-blue-100 via-white to-cyan-50 p-6"
         >
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md relative">
             <AuthForm />
           </div>
         </motion.div>

@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/form";
 import { loginApi } from "@/api/auth.api";
 import useToast from "@/hooks/useToast";
-import useAuthStore from "@/stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { LoadingWave } from "@/components/ui/loading";
 import { Eye, EyeClosed } from "lucide-react";
+import useAuthStore from "@/stores/useAuthStore";
 
 const LoginForm = () => {
   const form = useForm<UserLoginSchemaType>({
@@ -32,25 +32,38 @@ const LoginForm = () => {
   });
 
   const { showToast } = useToast();
-  const setUser = useAuthStore((state) => state.setUser);
   const navigator = useNavigate();
+  const setUser = useAuthStore((state) => state.setUser);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isVisible, setisVisible] = useState<boolean>(false);
 
   const onSubmit = async (values: UserLoginSchemaType) => {
     setIsLoading(true);
+
     try {
       const res = await loginApi(values);
-      const result = res.data?.data;
-      console.log("result: ", result);
-      setUser(result);
+      const result = res.data;
+      const loginUser = result?.data;
+
+      if (loginUser) {
+        setUser({
+          email: loginUser.email,
+          username: loginUser.username,
+          name: loginUser.name ?? loginUser.username,
+          profilePicture: loginUser.profilePicture,
+        });
+      }
+
+      if (loginUser?.token) {
+        setAccessToken(loginUser.token);
+      }
       showToast("success", result.message);
-      setTimeout(() => {
-        navigator("/");
-      }, 2000);
-    } catch (error: unknown) {
-      const err = error as any;
-      const errorMsg = err?.response?.data?.error || "Login failed";
+      navigator("/");
+    } catch (error: any) {
+      const errorMsg =
+        error?.response?.data?.message || error?.message || "Login failed";
+
       showToast("error", errorMsg);
     } finally {
       setIsLoading(false);

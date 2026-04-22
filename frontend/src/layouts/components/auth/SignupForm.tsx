@@ -40,11 +40,11 @@ const SignupForm = ({
   const password = useWatch({
     control: form.control,
     name: "password",
-  })
+  });
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isVisible, setisVisible] = useState<boolean>(false);
-  
+
   const getPasswordStrength = (password: string = "") => {
     let score = 0;
 
@@ -65,9 +65,7 @@ const SignupForm = ({
       const res = await registerAccountApi(values);
       const result = res.data;
       showToast("success", result.message);
-      setTimeout(() => {
-        setMode("login");
-      }, 2000);
+      setMode("login");
     } catch (error: any) {
       showToast("error", `${error.res.data.error}`);
     } finally {
@@ -83,13 +81,13 @@ const SignupForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
         {/* Username */}
         <FormField
           control={form.control}
           name="username"
           render={({ field }) => (
-            <FormItem className="flex w-full flex-col space-y-1">
+            <FormItem className="flex w-full flex-col">
               <FormLabel>Username</FormLabel>
               <FormControl>
                 <Input placeholder="john123" {...field} />
@@ -104,7 +102,7 @@ const SignupForm = ({
           control={form.control}
           name="fullname"
           render={({ field }) => (
-            <FormItem className="flex w-full flex-col space-y-1 text-left">
+            <FormItem className="flex w-full flex-col text-left">
               <FormLabel>Full Name</FormLabel>
               <FormControl>
                 <Input placeholder="John Doe" {...field} />
@@ -119,7 +117,7 @@ const SignupForm = ({
           control={form.control}
           name="email"
           render={({ field }) => (
-            <FormItem className="flex w-full flex-col space-y-1 text-left">
+            <FormItem className="flex w-full flex-col text-left">
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="m@example.com" {...field} />
@@ -134,7 +132,7 @@ const SignupForm = ({
           control={form.control}
           name="password"
           render={({ field }) => (
-            <FormItem className="flex w-full flex-col space-y-1 text-left">
+            <FormItem className="flex w-full flex-col text-left">
               <FormLabel>Password</FormLabel>
               <FormControl>
                 <div className="relative">
@@ -153,7 +151,7 @@ const SignupForm = ({
                   </Button>
                 </div>
               </FormControl>
-              <div className="mt-2 space-y-1">
+              <div className="mt-1 space-y-1">
                 <div className="h-2 w-full rounded bg-gray-200">
                   <div
                     className={`h-2 rounded transition-all ${

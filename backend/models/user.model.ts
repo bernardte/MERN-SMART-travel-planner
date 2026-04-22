@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { type ObjectId } from "mongoose";
 
 export interface IUser {
+  _id: ObjectId;
   name: string;
   username: string;
   email: string;

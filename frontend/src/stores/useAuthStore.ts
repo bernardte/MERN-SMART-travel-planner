@@ -1,5 +1,6 @@
 import type { User } from "@/types/interface.type";
 import { create } from "zustand";
+import type { mode } from "@/layouts/components/auth/AuthForm";
 
 interface authStore {
   user: User | null;
@@ -31,7 +32,7 @@ const useAuthStore = create<authStore>()((set) => ({
   },
   setRefreshToken: (refreshToken: string) => {
     set({ refreshToken });
-  }
+  },
 }));
 
 export default useAuthStore;
