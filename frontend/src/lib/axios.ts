@@ -31,10 +31,23 @@ axiosInstance.interceptors.request.use(
 );
 
 let isRefreshing = false;
-let failedQueue: any[] = [];
+type FailedQueueItem = {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+};
+let failedQueue: FailedQueueItem[] = [];
 
-const processQueue = (token: string) => {
-  failedQueue.forEach((cb) => cb(token));
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+      return;
+    }
+
+    if (token) {
+      resolve(token);
+    }
+  });
   failedQueue = [];
 };
 
@@ -44,16 +57,22 @@ axiosInstance.interceptors.response.use(
 
   async (error: AxiosError) => {
     const original = error.config as any;
+    const requestUrl = original?.url ?? "";
+    const shouldSkipRefresh =
+      requestUrl.includes("/api/users/login") ||
+      requestUrl.includes("/api/users/register-account") ||
+      requestUrl.includes("/api/refreshToken");
 
-    if (error.response?.status === 401 && !original._retry) {
+    if (error.response?.status === 401 && !original?._retry && !shouldSkipRefresh) {
       original._retry = true;
 
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          failedQueue.push((token: string) => {
-            original.headers.Authorization = `Bearer ${token}`;
-            resolve(axiosInstance(original));
-          });
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          original.headers = original.headers ?? {};
+          original.headers.Authorization = `Bearer ${token}`;
+          return axiosInstance(original);
         });
       }
 
@@ -61,13 +80,14 @@ axiosInstance.interceptors.response.use(
 
       try {
         const newToken = await getRefreshToken();
+        processQueue(null, newToken);
 
-        processQueue(newToken);
-
+        original.headers = original.headers ?? {};
         original.headers.Authorization = `Bearer ${newToken}`;
 
         return axiosInstance(original);
       } catch (err) {
+        processQueue(err);
         useAuthStore.getState().logout();
         return Promise.reject(err);
       } finally {

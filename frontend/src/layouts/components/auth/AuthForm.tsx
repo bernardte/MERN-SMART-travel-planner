@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
 import ResetPasswordForm from "./ResetPasswordForm";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 // Animation variants
 const containerVariants: Variants = {
@@ -55,20 +55,24 @@ const buttonVariants: Variants = {
 export type mode = "login" | "signup" | "reset";
 
 const AuthForm = () => {
-  const [mode, setMode] = useState<mode>("login");
-  const [isSwitching, setIsSwitching] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlMode = searchParams.get("mode") as mode | null;
+  const [mode, setMode] = useState<mode>(urlMode ?? "login");
 
-  const handleModeChange = (newMode: "login" | "signup" | "reset") => {
-    setIsSwitching(true);
-    setTimeout(() => {
-      setMode(newMode);
-      setTimeout(() => setIsSwitching(false), 150);
-    }, 200);
+  useEffect(() => {
+    if (urlMode) {
+      setMode(urlMode as mode);
+    }
+  }, [urlMode]);
+
+  const handleModeChange = (newMode: mode) => {
+    setMode(newMode);
+    setSearchParams({ mode: newMode });
   };
 
   return (
     <>
-      {mode === "reset" && !isSwitching && (
+      {mode === "reset" && (
         <Button
           variant="link"
           className="mb-4 -ml-2 h-auto p-0 text-sm hover:text-blue-600 hover:no-underline"
@@ -77,6 +81,14 @@ const AuthForm = () => {
           ← Back to Sign In
         </Button>
       )}
+      {mode === "login" && (
+        <Link
+          to={"/home"}
+          className="absolute -top-10 left-0 mb-4 -ml-2 p-0 text-sm text-blue-800 hover:text-blue-600 hover:no-underline"
+        >
+          ← Back to homepage
+        </Link>
+      )}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -84,124 +96,122 @@ const AuthForm = () => {
         className="w-full"
       >
         <AnimatePresence mode="wait">
-          {!isSwitching && (
-            <motion.div
-              key={mode}
-              variants={contentVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="space-y-6"
-            >
-              {mode === "login" && (
-                <>
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-blue-600">
-                      Welcome Back
-                    </h1>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Sign in to continue your journey
-                    </p>
-                  </div>
-                  <LoginForm />
-                  <div className="space-y-3">
-                    <motion.div
-                      variants={buttonVariants}
-                      whileHover="hover"
-                      whileTap="tap"
-                      className="text-center"
-                    >
-                      <Button
-                        variant="link"
-                        className="group h-auto p-0 text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => handleModeChange("signup")}
-                      >
-                        Don't have an account?&nbsp;Sign Up Now
-                      </Button>
-                    </motion.div>
-                    <motion.div
-                      variants={buttonVariants}
-                      whileHover="hover"
-                      whileTap="tap"
-                      className="text-center"
-                    >
-                      <Button
-                        variant="link"
-                        className="h-auto p-0 text-sm text-gray-500 hover:text-blue-700"
-                        onClick={() => handleModeChange("reset")}
-                      >
-                        Forgot password?
-                      </Button>
-                    </motion.div>
-                  </div>
-                </>
-              )}
-
-              {mode === "signup" && (
-                <div>
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-blue-600">
-                      Create Account
-                    </h1>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Join thousands of happy travelers
-                    </p>
-                  </div>
-                  <SignupForm setMode={setMode} />
-                  <div className="space-y-3 text-center">
-                    <motion.div
-                      variants={buttonVariants}
-                      whileHover="hover"
-                      whileTap="tap"
-                    >
-                      <Button
-                        variant="link"
-                        className="h-auto p-3 text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => handleModeChange("login")}
-                      >
-                        Already have an account?&nbsp;Sign In Now
-                      </Button>
-                    </motion.div>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      className="text-center text-xs text-gray-400"
-                    >
-                      By creating an account, you agree to our{" "}
-                      <Link
-                        to="#"
-                        className="font-medium text-blue-600 underline-offset-4 hover:underline"
-                      >
-                        Terms of Service
-                      </Link>{" "}
-                      and{" "}
-                      <Link
-                        to="#"
-                        className="font-medium text-blue-600 underline-offset-4 hover:underline"
-                      >
-                        Privacy Policy
-                      </Link>
-                    </motion.p>
-                  </div>
+          <motion.div
+            key={mode}
+            variants={contentVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="space-y-6"
+          >
+            {mode === "login" && (
+              <>
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-blue-600">
+                    Welcome Back
+                  </h1>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Sign in to continue your journey
+                  </p>
                 </div>
-              )}
+                <LoginForm />
+                <div className="space-y-3">
+                  <motion.div
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    className="text-center"
+                  >
+                    <Button
+                      variant="link"
+                      className="group h-auto p-0 text-sm font-medium text-blue-600 hover:text-blue-700"
+                      onClick={() => handleModeChange("signup")}
+                    >
+                      Don't have an account?&nbsp;Sign Up Now
+                    </Button>
+                  </motion.div>
+                  <motion.div
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    className="text-center"
+                  >
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 text-sm text-gray-500 hover:text-blue-700"
+                      onClick={() => handleModeChange("reset")}
+                    >
+                      Forgot password?
+                    </Button>
+                  </motion.div>
+                </div>
+              </>
+            )}
 
-              {mode === "reset" && (
-                <>
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-blue-600">
-                      Reset Password
-                    </h1>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Enter your email to receive a reset link
-                    </p>
-                  </div>
-                  <ResetPasswordForm />
-                </>
-              )}
-            </motion.div>
-          )}
+            {mode === "signup" && (
+              <div>
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-blue-600">
+                    Create Account
+                  </h1>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Join thousands of happy travelers
+                  </p>
+                </div>
+                <SignupForm setMode={setMode} />
+                <div className="-space-y-2 text-center md:-space-y-1">
+                  <motion.div
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    <Button
+                      variant="link"
+                      className="h-auto p-3 text-sm font-medium text-blue-600 hover:text-blue-700"
+                      onClick={() => handleModeChange("login")}
+                    >
+                      Already have an account?&nbsp;Sign In Now
+                    </Button>
+                  </motion.div>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-center text-xs text-gray-400"
+                  >
+                    By creating an account, you agree to our{" "}
+                    <Link
+                      to="#"
+                      className="font-medium text-blue-600 underline-offset-4 hover:underline"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      to="#"
+                      className="font-medium text-blue-600 underline-offset-4 hover:underline"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </motion.p>
+                </div>
+              </div>
+            )}
+
+            {mode === "reset" && (
+              <>
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-blue-600">
+                    Reset Password
+                  </h1>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Enter your email to receive a reset link
+                  </p>
+                </div>
+                <ResetPasswordForm />
+              </>
+            )}
+          </motion.div>
         </AnimatePresence>
       </motion.div>
     </>

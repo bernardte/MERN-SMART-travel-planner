@@ -18,7 +18,7 @@ const useHandleLogout = () => {
             await logoutApi();
             showToast("success", "Logout successfully!");
             logout();
-            navigate("/auth");
+            navigate("/auth?mode=login");
         } catch (error: any) {
             showToast("error", `${error?.response?.data?.error}`);
         }finally{

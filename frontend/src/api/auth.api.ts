@@ -3,26 +3,44 @@ import type {
   UserLoginSchemaType,
   UserSignUpSchemaType,
 } from "@/lib/zod/userSchema";
+import { handleApiResponse } from "@/lib/helpers/apiWrapper";
 
-export const loginApi = (data: UserLoginSchemaType) =>
-  axiosInstance.post("/api/users/login", {
+export const loginApi = async (data: UserLoginSchemaType) => {
+  const res = await axiosInstance.post("/api/users/login", {
     email: data.email,
     password: data.password,
   });
 
-export const registerAccountApi = (data: UserSignUpSchemaType) =>
-  axiosInstance.post("/api/users/register-account", {
+  return handleApiResponse(res);
+};
+
+export const registerAccountApi = async (data: UserSignUpSchemaType) => {
+  const res = await axiosInstance.post("/api/users/register-account", {
     name: data.fullname,
     password: data.password,
     email: data.email,
     username: data.username,
-});
+  });
 
-export const logoutApi = () => axiosInstance.post("/api/users/logout");
+  return handleApiResponse(res);
+};
 
-export const refreshTokenApi = (token: string | null) =>
-  axiosInstance.get("/api/refreshToken/", {
+export const logoutApi = async () => {
+  const res = await axiosInstance.post("/api/users/logout");
+  return handleApiResponse(res);
+};
+
+export const refreshTokenApi = async (token: string | null) => {
+  const res = await axiosInstance.get("/api/refreshToken/", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-});
+  });
+
+  return handleApiResponse(res);
+};
+
+export const getLoginUserApi = async () => {
+  const res = await axiosInstance.get("/api/users/get-login-user");
+  return handleApiResponse(res);
+};
