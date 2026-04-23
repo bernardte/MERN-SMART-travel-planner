@@ -84,7 +84,7 @@ const LandingPage = () => {
               to={user ? "/dashboard" : "/auth?mode=signup"}
               className="from-primary to-primary/80 shadow-primary/30 flex items-center gap-2 rounded-full bg-gradient-to-r px-8 py-3.5 font-semibold text-white shadow-lg transition-all hover:scale-105"
             >
-              {user ? "Start Planning Now" : "Register Now !" }
+              {user ? "Start Planning Now" : "Register Now" }
               <ArrowRight className="h-4 w-4" />
             </Link>
             <button className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3.5 font-semibold text-white transition-all hover:bg-white/10">
