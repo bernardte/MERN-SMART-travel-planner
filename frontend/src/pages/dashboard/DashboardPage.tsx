@@ -10,8 +10,11 @@ import {
 } from "lucide-react";
 import Card from "@/components/card/Card";
 import CardList from "@/components/card/CardList";
+import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
       {/* Main Content */}
@@ -24,7 +27,7 @@ const DashboardPage = () => {
             </h1>
             <p className="mt-1 text-gray-500">Where will you go next?</p>
           </div>
-          <button className="from-primary to-primary/80 shadow-primary/30 flex items-center gap-2 rounded-2xl bg-gradient-to-r px-6 py-3 font-medium text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl">
+          <button onClick={() => navigate("/plan")} className="from-primary to-primary/80 shadow-primary/30 flex items-center gap-2 rounded-2xl bg-gradient-to-r px-6 py-3 font-medium text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl">
             <Plus className="h-5 w-5" />
             Plan New Trip
           </button>
