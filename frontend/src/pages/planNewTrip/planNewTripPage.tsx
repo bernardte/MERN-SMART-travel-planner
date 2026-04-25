@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
   MapPin,
@@ -11,17 +11,19 @@ import {
   StickyNote,
   ChevronRight,
   Plane,
+  CheckCircle,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 // Fix default Leaflet icon paths
 const iconProto = L.Icon.Default.prototype as L.Icon.Default & { _getIconUrl?: string };
 delete iconProto._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
@@ -37,11 +39,11 @@ interface LocationEntry {
 }
 
 interface DayEntry {
-  date: string; // ISO date string
+  date: string;
   locations: LocationEntry[];
 }
 
-// ─── Mock geocode (replace with real API if needed) ───────────────────────────
+// ─── Geocoding ────────────────────────────────────────────────────────────────
 
 const MOCK_COORDS: Record<string, [number, number]> = {
   default: [48.8566, 2.3522],
@@ -155,6 +157,8 @@ const makeIcon = (idx: number) =>
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const PlanNewTripPage = () => {
+  const navigate = useNavigate();
+
   const [country, setCountry] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -164,8 +168,9 @@ const PlanNewTripPage = () => {
   const [mapCenter, setMapCenter] = useState<[number, number]>([20, 0]);
   const [mapZoom, setMapZoom] = useState(2);
   const [isAddingLocation, setIsAddingLocation] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // ── Derived: rebuild day list whenever dates change, preserving existing locations ──
+  // ── Derived itinerary for rendering day tabs ──────────────────────────────
   const derivedItinerary = useMemo<DayEntry[]>(() => {
     if (!startDate || !endDate) return [];
     const dates = generateDateRange(startDate, endDate);
@@ -177,7 +182,6 @@ const PlanNewTripPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate]);
 
-  // Keep itinerary in sync with derivedItinerary via a stable setter called from handlers
   const handleStartDate = (value: string) => {
     setStartDate(value);
     if (!value || !endDate) return;
@@ -194,17 +198,19 @@ const PlanNewTripPage = () => {
     setActiveDate((prev) => (prev && dates.includes(prev) ? prev : (dates[0] ?? null)));
   };
 
-  // Pan map to country (async side-effect is fine — it only touches external fetch + setState via callback)
+  // Pan map to country
   useEffect(() => {
     if (!country) return;
     let cancelled = false;
     const timer = setTimeout(() => {
-      countryGeocode(country).then((coords) => {
-        if (!cancelled) {
-          setMapCenter(coords);
-          setMapZoom(5);
-        }
-      }).catch(() => { /* ignore */ });
+      countryGeocode(country)
+        .then((coords) => {
+          if (!cancelled) {
+            setMapCenter(coords);
+            setMapZoom(5);
+          }
+        })
+        .catch(() => { /* ignore */ });
     }, 600);
     return () => {
       cancelled = true;
@@ -263,13 +269,44 @@ const PlanNewTripPage = () => {
     );
   };
 
-  // All markers for the map
+  // ── Save Itinerary ────────────────────────────────────────────────────────
+  const handleSave = async () => {
+    if (!country.trim()) {
+      toast.error("Please enter a destination.");
+      return;
+    }
+    if (!startDate || !endDate) {
+      toast.error("Please select your travel dates.");
+      return;
+    }
+    const totalLocations = itinerary.reduce((a, d) => a + d.locations.length, 0);
+    if (totalLocations === 0) {
+      toast.error("Please add at least one location to your itinerary.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await axios.post(
+        "/api/trips/save",
+        { country, startDate, endDate, days: itinerary },
+        { withCredentials: true }
+      );
+      toast.success("Itinerary saved! Redirecting to dashboard…");
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } catch {
+      toast.error("Failed to save itinerary. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const allMarkers = itinerary.flatMap((d) => d.locations);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden font-sans bg-white">
+    <div style={{ display: "flex", height: "100dvh", width: "100%", overflow: "hidden" }}>
       {/* ── LEFT PANEL ──────────────────────────────────────────────────── */}
-      <aside className="flex w-[40%] flex-shrink-0 flex-col border-r border-gray-100 bg-slate-50 overflow-hidden">
+      <aside style={{ width: "40%", flexShrink: 0, display: "flex", flexDirection: "column", height: "100%", borderRight: "1px solid #f1f5f9", background: "#f8fafc", overflow: "hidden" }}>
         {/* Top bar */}
         <div className="flex items-center gap-3 border-b border-gray-100 bg-white px-5 py-3.5">
           <Link
@@ -306,8 +343,7 @@ const PlanNewTripPage = () => {
             {derivedItinerary.length > 0 && (
               <p className="mt-1 text-sm text-gray-500">
                 {derivedItinerary.length} day{derivedItinerary.length !== 1 ? "s" : ""} •{" "}
-                {derivedItinerary.reduce((a, d) => a + d.locations.length, 0)}{" "}
-                locations
+                {itinerary.reduce((a, d) => a + d.locations.length, 0)} locations
               </p>
             )}
           </div>
@@ -418,7 +454,6 @@ const PlanNewTripPage = () => {
                   className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-3 transition-all hover:shadow-md"
                 >
                   <div className="flex items-start gap-3">
-                    {/* Number badge */}
                     <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-xs font-bold text-white shadow-md">
                       {idx + 1}
                     </div>
@@ -506,16 +541,24 @@ const PlanNewTripPage = () => {
         {/* Save button */}
         {derivedItinerary.length > 0 && (
           <div className="border-t border-gray-100 bg-white px-5 py-4">
-            <button className="w-full rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition-all hover:scale-[1.02] hover:shadow-xl">
-              Save Itinerary ✨
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition-all hover:scale-[1.02] hover:shadow-xl disabled:opacity-60 disabled:hover:scale-100"
+            >
+              {isSaving ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <CheckCircle className="h-4 w-4" />
+              )}
+              {isSaving ? "Saving…" : "Save Itinerary ✨"}
             </button>
           </div>
         )}
       </aside>
 
       {/* ── RIGHT PANEL — MAP ──────────────────────────────────────────────── */}
-      <main className="relative flex-1 overflow-hidden">
-        {/* Overlay badge */}
+      <main style={{ position: "relative", flex: 1, overflow: "hidden", height: "100%" }}>
         {allMarkers.length > 0 && (
           <div className="absolute left-4 top-4 z-[1000] rounded-2xl bg-white/90 px-4 py-2 shadow-lg backdrop-blur-sm">
             <p className="text-xs font-semibold text-gray-500">
