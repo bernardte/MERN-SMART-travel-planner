@@ -2,8 +2,14 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { Bounce, ToastContainer } from "react-toastify";
 import { lazy, Suspense } from "react";
 import { LoadingState } from "./layouts/components/loading/LoadingState";
+import MainLayout from "./layouts/MainLayout";
+import DashboardPage from "./pages/dashboard/DashboardPage";
+import HistoryPage from "./pages/history/HistoryPage";
+import LandingPage from "./pages/landing/LandingPage";
+import ProfilePage from "./pages/profile/ProfilePage";
+import { ProtectRoute } from "./lib/helpers/protectRoute";
 const AuthenticationPage = lazy(
-  () => import("./pages/AuthenticationPage/AuthenticationPage"),
+  () => import("./pages/authentication/AuthenticationPage"),
 );
 function App() {
   return (
@@ -12,6 +18,14 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/auth" element={<AuthenticationPage />} />
+          <Route element={<MainLayout />}>
+            <Route path="/home" element={<LandingPage />} />
+            <Route element={<ProtectRoute />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/history" element={<HistoryPage />} />
+            </Route>
+          </Route>
         </Routes>
       </Suspense>
 
@@ -33,4 +47,3 @@ function App() {
 }
 
 export default App;
-
