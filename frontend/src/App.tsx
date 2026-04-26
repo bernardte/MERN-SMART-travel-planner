@@ -9,6 +9,7 @@ import LandingPage from "./pages/landing/LandingPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import { ProtectRoute } from "./lib/helpers/protectRoute";
 import PlanNewTripPage from "./pages/planNewTrip/planNewTripPage";
+import ViewTripPage from "./pages/planNewTrip/viewTripPage";
 const AuthenticationPage = lazy(
   () => import("./pages/authentication/AuthenticationPage"),
 );
@@ -22,6 +23,7 @@ function App() {
 
           <Route element={<ProtectRoute />}>
             <Route path="/plan" element={<PlanNewTripPage />} />
+            <Route path="/trips/:id" element={<ViewTripPage />} />
           </Route>
 
           <Route element={<MainLayout />}>

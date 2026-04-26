@@ -40,6 +40,24 @@ const getMyTrips = async (req: Request, res: Response): Promise<void> => {
   successApiResponse(res, 200, "Trips fetched successfully", { trips });
 };
 
+const getTripById = async (
+  req: Request<{ id: string }>,
+  res: Response,
+): Promise<void> => {
+  if (!req.user) throw new AppError(401, "Unauthorized");
+  const userId = req.user._id;
+  const { id } = req.params;
+
+  const trip = await Trip.findOne({
+    _id: id,
+    userId,
+  } as any);
+
+  if (!trip) throw new AppError(404, "Trip not found.");
+
+  successApiResponse(res, 200, "Trip fetched successfully", { trip });
+};
+
 const deleteTrip = async (
   req: Request<{ id: string }>,
   res: Response,
@@ -49,9 +67,9 @@ const deleteTrip = async (
   const { id } = req.params;
 
   const trip = await Trip.findOneAndDelete({
-    _id: new mongoose.Types.ObjectId(id),
+    _id: id,
     userId,
-  } as object);
+  } as any);
 
   if (!trip) throw new AppError(404, "Trip not found or not authorized.");
 
@@ -61,5 +79,6 @@ const deleteTrip = async (
 export default {
   saveTrip,
   getMyTrips,
+  getTripById,
   deleteTrip,
 };

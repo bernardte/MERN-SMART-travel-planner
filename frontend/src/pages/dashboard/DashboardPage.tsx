@@ -11,13 +11,13 @@ import {
   MapPin,
   Trash2,
   Loader2,
+  Share2,
+  Eye,
 } from "lucide-react";
 import Card from "@/components/card/Card";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-
 
 interface ILocation {
   id: string;
@@ -41,9 +41,6 @@ interface ITrip {
   createdAt: string;
 }
 
-
-
-
 const formatDateRange = (start: string, end: string) => {
   const fmt = (iso: string) =>
     new Date(iso + "T00:00:00").toLocaleDateString("en-US", {
@@ -57,14 +54,11 @@ const formatDateRange = (start: string, end: string) => {
 const totalLocations = (days: IDay[]) =>
   days.reduce((a, d) => a + d.locations.length, 0);
 
-
-
 const DashboardPage = () => {
   const navigate = useNavigate();
   const [trips, setTrips] = useState<ITrip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
 
   useEffect(() => {
     let cancelled = false;
@@ -180,47 +174,66 @@ const DashboardPage = () => {
                 {trips.map((trip) => (
                   <div
                     key={trip._id}
-                    className="flex items-start gap-3 rounded-xl border border-gray-100 bg-slate-50 p-3 transition-all hover:shadow-sm"
+                    className="rounded-xl border border-gray-100 bg-slate-50 p-3 transition-all hover:shadow-sm"
                   >
-                    {/* Icon */}
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md">
-                      <MapPin className="h-5 w-5 text-white" />
+                    {/* Top row — icon + info + delete */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md">
+                        <MapPin className="h-5 w-5 text-white" />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-gray-800">
+                          {trip.country}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDateRange(trip.startDate, trip.endDate)}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-400">
+                          {trip.days.length} day{trip.days.length !== 1 ? "s" : ""} •{" "}
+                          {totalLocations(trip.days)} location
+                          {totalLocations(trip.days) !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+
+                      {/* Delete */}
+                      <button
+                        onClick={() => handleDelete(trip._id)}
+                        disabled={deletingId === trip._id}
+                        className="rounded-lg p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50"
+                      >
+                        {deletingId === trip._id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
 
-                    {/* Info */}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-gray-800">
-                        {trip.country}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatDateRange(trip.startDate, trip.endDate)}
-                      </p>
-                      <p className="mt-0.5 text-xs text-gray-400">
-                        {trip.days.length} day{trip.days.length !== 1 ? "s" : ""} •{" "}
-                        {totalLocations(trip.days)} location
-                        {totalLocations(trip.days) !== 1 ? "s" : ""}
-                      </p>
+                    {/* Bottom row — View + Share buttons */}
+                    <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3">
+                      <button
+                        onClick={() => navigate(`/trips/${trip._id}`)}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-[1.02] hover:shadow-md"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        View
+                      </button>
+                      <button
+                        onClick={() => toast.info("Sharing coming soon!")}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-blue-300 hover:text-blue-500"
+                      >
+                        <Share2 className="h-3.5 w-3.5" />
+                        Share
+                      </button>
                     </div>
-
-                    {/* Delete */}
-                    <button
-                      onClick={() => handleDelete(trip._id)}
-                      disabled={deletingId === trip._id}
-                      className="rounded-lg p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50"
-                    >
-                      {deletingId === trip._id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/*  Community Guides 区域 */}
+          {/* Community Guides 区域 */}
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all hover:shadow-md">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
