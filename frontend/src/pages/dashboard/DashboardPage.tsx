@@ -13,6 +13,7 @@ import {
   Loader2,
   Share2,
   Eye,
+  Pencil,
 } from "lucide-react";
 import Card from "@/components/card/Card";
 import { useNavigate } from "react-router-dom";
@@ -176,7 +177,7 @@ const DashboardPage = () => {
                     key={trip._id}
                     className="rounded-xl border border-gray-100 bg-slate-50 p-3 transition-all hover:shadow-sm"
                   >
-                    {/* Top row — icon + info + delete */}
+                    {/* Top row: icon + info + delete */}
                     <div className="flex items-start gap-3">
                       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md">
                         <MapPin className="h-5 w-5 text-white" />
@@ -210,7 +211,7 @@ const DashboardPage = () => {
                       </button>
                     </div>
 
-                    {/* Bottom row — View + Share buttons */}
+                    {/* Bottom row: View + Edit + Share buttons */}
                     <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3">
                       <button
                         onClick={() => navigate(`/trips/${trip._id}`)}
@@ -220,7 +221,14 @@ const DashboardPage = () => {
                         View
                       </button>
                       <button
-                        onClick={() => toast.info("Sharing coming soon!")}
+                        onClick={() => navigate(`/trips/${trip._id}/edit`)}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-violet-300 hover:text-violet-500"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => toast.info("Hello YuHang i put a toast here temporary here for you, rmb change to navigate to link to other page")}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-blue-300 hover:text-blue-500"
                       >
                         <Share2 className="h-3.5 w-3.5" />

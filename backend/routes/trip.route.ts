@@ -8,6 +8,7 @@ const router = express.Router();
 router.post("/save", protectRoute, asyncHandler(tripController.saveTrip));
 router.get("/my-trips", protectRoute, asyncHandler(tripController.getMyTrips));
 router.get("/:id", protectRoute, asyncHandler(tripController.getTripById));
+router.put("/:id", protectRoute, asyncHandler(tripController.updateTrip));
 router.delete("/:id", protectRoute, asyncHandler(tripController.deleteTrip));
 
 export default router;

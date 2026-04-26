@@ -27,7 +27,6 @@ const saveTrip = async (
     throw new AppError(400, "At least one day is required.");
 
   const trip = await Trip.create({ userId, country, startDate, endDate, days });
-
   successApiResponse(res, 201, "Trip saved successfully", { trip });
 };
 
@@ -36,7 +35,6 @@ const getMyTrips = async (req: Request, res: Response): Promise<void> => {
   const userId = req.user._id;
 
   const trips = await Trip.find({ userId }).sort({ createdAt: -1 });
-
   successApiResponse(res, 200, "Trips fetched successfully", { trips });
 };
 
@@ -54,8 +52,30 @@ const getTripById = async (
   } as any);
 
   if (!trip) throw new AppError(404, "Trip not found.");
-
   successApiResponse(res, 200, "Trip fetched successfully", { trip });
+};
+
+const updateTrip = async (
+  req: Request<{ id: string }, {}, SaveTripBody>,
+  res: Response,
+): Promise<void> => {
+  if (!req.user) throw new AppError(401, "Unauthorized");
+  const userId = req.user._id;
+  const { id } = req.params;
+  const { country, startDate, endDate, days } = req.body;
+
+  if (!country?.trim()) throw new AppError(400, "Country is required.");
+  if (!startDate?.trim() || !endDate?.trim())
+    throw new AppError(400, "Start date and end date are required.");
+
+  const trip = await Trip.findOneAndUpdate(
+    { _id: id, userId } as any,
+    { country, startDate, endDate, days },
+    { new: true },
+  );
+
+  if (!trip) throw new AppError(404, "Trip not found or not authorized.");
+  successApiResponse(res, 200, "Trip updated successfully", { trip });
 };
 
 const deleteTrip = async (
@@ -72,7 +92,6 @@ const deleteTrip = async (
   } as any);
 
   if (!trip) throw new AppError(404, "Trip not found or not authorized.");
-
   successApiResponse(res, 200, "Trip deleted successfully");
 };
 
@@ -80,5 +99,6 @@ export default {
   saveTrip,
   getMyTrips,
   getTripById,
+  updateTrip,
   deleteTrip,
 };
