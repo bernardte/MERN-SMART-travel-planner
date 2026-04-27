@@ -26,7 +26,6 @@ export async function getTripApi(){
     const response = await axiosInstance.get(
         "/api/trips/my-trips"
     );
-    console.log(response);
     return response.data;
 }
 

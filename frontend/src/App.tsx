@@ -46,7 +46,7 @@ function App() {
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/post" element={<PostPage />} />
               <Route path="/feed-post/:id" element={<TravelGuideFeed />} />
-              <Route path="/create-travel-guide" element={<CreatePostPage />} />
+              <Route path="/create-travel-guide/:tripId" element={<CreatePostPage />} />
             </Route>
           </Route>
         </Routes>

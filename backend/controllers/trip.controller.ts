@@ -1,5 +1,4 @@
 import type { Request, Response } from "express";
-import mongoose from "mongoose";
 import Trip from "../models/trip.model";
 import { successApiResponse } from "../utils/succes_api_response";
 import { AppError } from "../utils/error_api_response";

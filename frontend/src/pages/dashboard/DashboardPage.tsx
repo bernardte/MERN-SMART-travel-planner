@@ -21,28 +21,8 @@ import Card from "@/components/card/Card";
 import { useNavigate } from "react-router-dom";
 import useToast from "@/hooks/useToast";
 import useAuthStore from "@/stores/useAuthStore";
-
-interface ILocation {
-  id: string;
-  name: string;
-  note: string;
-  lat: number;
-  lng: number;
-}
-
-interface IDay {
-  date: string;
-  locations: ILocation[];
-}
-
-interface ITrip {
-  _id: string;
-  country: string;
-  startDate: string;
-  endDate: string;
-  days: IDay[];
-  createdAt: string;
-}
+import type { IDay, Trip } from "@/types/interface.type";
+import { Button } from "@/components/ui/button";
 
 const formatDateRange = (start: string, end: string) => {
   const fmt = (iso: string) =>
@@ -59,11 +39,12 @@ const totalLocations = (days: IDay[]) =>
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const [trips, setTrips] = useState<ITrip[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { showToast } = useToast();
   const user = useAuthStore(state => state.user);
+
   useEffect(() => {
   let cancelled = false;
   const fetchTrips = async () => {
@@ -112,7 +93,9 @@ const handleDelete = async (tripId:string) => {
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome back {user?.username}! ✨</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome back {user?.username}! ✨
+            </h1>
             <p className="mt-1 text-gray-500">Where will you go next?</p>
           </div>
           <button
@@ -249,13 +232,22 @@ const handleDelete = async (tripId:string) => {
                         <Pencil className="h-3.5 w-3.5" />
                         Edit
                       </button>
-                      <button
-                        onClick={() => showToast("info","Hello YuHang i put a toast here temporary here for you, rmb change to navigate to link to other page")}
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-blue-300 hover:text-blue-500"
-                      >
-                        <Send className="h-3.5 w-3.5" />
-                        Post to Community
-                      </button>
+
+                      {trip.isTravelGuideCreated ? (
+                        <Button onClick={() => navigate(`/edit-travel-guide`)}>
+                          Edit Travel Guide
+                        </Button>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            navigate(`/create-travel-guide/${trip._id}`)
+                          }
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-blue-300 hover:text-blue-500"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                          Create Travel Guide
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
