@@ -44,7 +44,13 @@ const Navbar = () => {
     : "Traveler";
   const displayEmail = user ? String(user.email || "") : "";
   const avatarInitial = displayName.charAt(0).toUpperCase();
+  const filteredNavItems = navigationItems.filter((item) => {
+    if(item.link === "/dashboard"){
+      return !!user;
+    }
 
+    return true;
+  })
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -177,7 +183,7 @@ const Navbar = () => {
           {/* Nav Items */}
           <div className="absolute left-1/2 hidden -translate-x-1/2 md:block">
             <div className="flex items-center gap-1">
-              {navigationItems.map((item) => (
+              {filteredNavItems.map((item) => (
                 <motion.div
                   key={item.label}
                   whileHover="hover"
@@ -278,7 +284,7 @@ const Navbar = () => {
           {/* Menu */}
           <div className="absolute left-1/2 hidden -translate-x-1/2 md:block">
             <div className="flex gap-1">
-              {navigationItems.map((item) => (
+              {filteredNavItems.map((item) => (
                 <Link
                   key={item.label}
                   to={item.link}

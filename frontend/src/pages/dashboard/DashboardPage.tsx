@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { destination } from "@/constants/dashboardPage";
-import { getTripApi } from "@/api/trip.api"; 
+import { getTripApi,deleteTripApi } from "@/api/trip.api"; 
 import {
   Plus,
   ChevronRight,
@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import Card from "@/components/card/Card";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import useToast from "@/hooks/useToast";
+import useAuthStore from "@/stores/useAuthStore";
 
 interface ILocation {
   id: string;
@@ -62,6 +62,7 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { showToast } = useToast();
+  const user = useAuthStore(state => state.user);
   useEffect(() => {
   let cancelled = false;
 
@@ -90,18 +91,20 @@ const DashboardPage = () => {
   };
 }, []);
 
-  const handleDelete = async (tripId: string) => {
-    setDeletingId(tripId);
-    try {
-      await axios.delete(`/api/trips/${tripId}`, { withCredentials: true });
-      setTrips((prev) => prev.filter((t) => t._id !== tripId));
-      showToast("success","Trip deleted.");
-    } catch {
-      showToast("error","Failed to delete trip.");
-    } finally {
-      setDeletingId(null);
-    }
-  };
+const handleDelete = async (tripId:string) => {
+  setDeletingId(tripId);
+
+  try {
+    await deleteTripApi(tripId);
+
+    setTrips((prev) => prev.filter((t) => t._id !== tripId));
+    showToast("success", "Trip deleted.");
+  } catch{
+    showToast("error", "Failed to delete trip.");
+  } finally {
+    setDeletingId(null);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
@@ -110,7 +113,7 @@ const DashboardPage = () => {
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome back! ✨</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Welcome back {user?.username}! ✨</h1>
             <p className="mt-1 text-gray-500">Where will you go next?</p>
           </div>
           <button

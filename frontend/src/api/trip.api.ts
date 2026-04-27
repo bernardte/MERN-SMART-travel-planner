@@ -15,9 +15,16 @@ export async function editTripApi(country: string, startDate: string, endDate: s
     );
 }
 
+export async function deleteTripApi(tripId:string) {
+  const res = await axiosInstance.delete(
+    `/api/trips/${tripId}`
+);
+  return res.data;
+}
+
 export async function getTripApi(){
     const response = await axiosInstance.get(
-       "/api/trips/my-trips"
+        "/api/trips/my-trips"
     );
     console.log(response);
     return response.data;
