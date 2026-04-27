@@ -8,6 +8,9 @@ import HistoryPage from "./pages/history/HistoryPage";
 import LandingPage from "./pages/landing/LandingPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import { ProtectRoute } from "./lib/helpers/protectRoute";
+import PlanNewTripPage from "./pages/planNewTrip/planNewTripPage";
+import ViewTripPage from "./pages/planNewTrip/viewTripPage";
+import EditTripPage from "./pages/planNewTrip/editTripPage";
 const AuthenticationPage = lazy(
   () => import("./pages/authentication/AuthenticationPage"),
 );
@@ -18,6 +21,13 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/auth" element={<AuthenticationPage />} />
+
+          <Route element={<ProtectRoute />}>
+            <Route path="/plan" element={<PlanNewTripPage />} />
+            <Route path="/trips/:id" element={<ViewTripPage />} />
+            <Route path="/trips/:id/edit" element={<EditTripPage />} />
+          </Route>
+
           <Route element={<MainLayout />}>
             <Route path="/home" element={<LandingPage />} />
             <Route element={<ProtectRoute />}>
