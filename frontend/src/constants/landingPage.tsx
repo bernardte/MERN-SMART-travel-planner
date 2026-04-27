@@ -15,7 +15,7 @@ interface NavigationItems {
 
 export const navigationItems: NavigationItems[] = [
   { label: "Home", link: "/" },
-  { label: "Community Guide", link: "/community" },
+  { label: "Community Guide", link: "/community-guide" },
   { label: "Dashboard", link: "/dashboard" },
 ];
 

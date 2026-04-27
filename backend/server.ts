@@ -10,6 +10,7 @@ import userRouter from "./routes/users.route";
 import refreshTokenRouter from "./routes/refreshToken.route";
 import { errorHandlingMiddleware } from "./middleware/error_handling.middleware";
 import tripRoute from "./routes/trip.route";
+import travelGuideRoute from "./routes/travel_guide.route";
 
 connectDB();
 const app = express();
@@ -43,6 +44,7 @@ app.use(
 app.use("/api/refreshToken", refreshTokenRouter);
 app.use("/api/users", userRouter);
 app.use("/api/trips", tripRoute);
+app.use("/api/travel-guide", travelGuideRoute);
 
 //! Error handling middleware should be the last middleware for getting all the controller errors.
 app.use(errorHandlingMiddleware);

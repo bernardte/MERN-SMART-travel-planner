@@ -44,13 +44,6 @@ const Navbar = () => {
     : "Traveler";
   const displayEmail = user ? String(user.email || "") : "";
   const avatarInitial = displayName.charAt(0).toUpperCase();
-  const filteredNavItems = navigationItems.filter((item) => {
-    if(item.link === "/dashboard"){
-      return !!user;
-    }
-
-    return true;
-  })
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -68,6 +61,14 @@ const Navbar = () => {
     if (path !== "/" && location.pathname.startsWith(path)) return true;
     return false;
   };
+
+  const filteredNavItems = navigationItems.filter((item) => {
+    if(item.link === "/dashboard"){
+      return !!user; // only show if logged in
+    }
+
+    return true;
+  })
 
   const renderUserMenu = (isTransparentMode: boolean) => {
     if (!user) return null;
