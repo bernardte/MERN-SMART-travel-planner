@@ -18,7 +18,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { editTripApi } from "@/api/trip.api";
+import useToast from "@/hooks/useToast";
 
 // Fix Leaflet icon
 const iconProto = L.Icon.Default.prototype as L.Icon.Default & { _getIconUrl?: string };
@@ -39,7 +40,7 @@ interface LocationEntry {
   lng: number;
 }
 
-interface DayEntry {
+export interface DayEntry {
   date: string;
   locations: LocationEntry[];
 }
@@ -141,6 +142,8 @@ const EditTripPage = () => {
   const [mapZoom, setMapZoom] = useState(2);
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { showToast } = useToast();
+
 
   // ── Load existing trip ────────────────────────────────────────────────────
   useEffect(() => {
@@ -169,7 +172,7 @@ const EditTripPage = () => {
         }
       })
       .catch(() => {
-        if (!cancelled) toast.error("Failed to load trip.");
+        if (!cancelled) showToast("error", "Failed to load trip.");
       })
       .finally(() => {
         if (!cancelled) setIsLoadingTrip(false);
@@ -259,20 +262,16 @@ const EditTripPage = () => {
 
   // ── Save (PUT) ────────────────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!country.trim()) { toast.error("Please enter a destination."); return; }
-    if (!startDate || !endDate) { toast.error("Please select your travel dates."); return; }
-
+    if (!country.trim()) { showToast("error", "Please enter a destination."); return; }
+    if (!startDate || !endDate) { showToast("error", "Please select your travel dates."); return; }
+    if (!id) return;
     setIsSaving(true);
     try {
-      await axios.put(
-        `/api/trips/${id}`,
-        { country, startDate, endDate, days: itinerary },
-        { withCredentials: true }
-      );
-      toast.success("Trip updated! Redirecting to dashboard…");
+      await editTripApi(country, startDate, endDate, itinerary, id);
+      showToast("success","Trip updated! Redirecting to dashboard…");
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch {
-      toast.error("Failed to update trip. Please try again.");
+      showToast("error", "Failed to update trip. Please try again.");
     } finally {
       setIsSaving(false);
     }

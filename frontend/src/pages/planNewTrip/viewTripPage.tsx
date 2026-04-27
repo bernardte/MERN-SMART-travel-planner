@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import axios from "axios";
+import { getSpecificTripApi } from "@/api/trip.api";
 import {
   ArrowLeft,
   MapPin,
@@ -106,32 +106,40 @@ const ViewTripPage = () => {
   const [mapZoom, setMapZoom] = useState(2);
 
   useEffect(() => {
-    let cancelled = false;
-    axios
-      .get(`/api/trips/${id}`, { withCredentials: true })
-      .then((res) => {
-        if (!cancelled) {
-          const data: ITrip = res.data.data.trip;
-          setTrip(data);
-          if (data.days.length > 0) {
-            setActiveDate(data.days[0].date);
-            // Pan to first location if exists
-            const firstLoc = data.days[0].locations[0];
-            if (firstLoc) {
-              setMapCenter([firstLoc.lat, firstLoc.lng]);
-              setMapZoom(12);
-            }
+  let cancelled = false;
+
+  const fetchTrip = async () => {
+    if (!id) return;
+
+    try {
+      const data = await getSpecificTripApi(id);
+
+      if (!cancelled) {
+        setTrip(data);
+
+        if (data.days.length > 0) {
+          setActiveDate(data.days[0].date);
+
+          const firstLoc = data.days[0].locations[0];
+          if (firstLoc) {
+            setMapCenter([firstLoc.lat, firstLoc.lng]);
+            setMapZoom(12);
           }
         }
-      })
-      .catch(() => {
-        if (!cancelled) setTrip(null);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [id]);
+      }
+    } catch{
+      if (!cancelled) setTrip(null);
+    } finally {
+      if (!cancelled) setIsLoading(false);
+    }
+  };
+
+  fetchTrip();
+
+  return () => {
+    cancelled = true;
+  };
+}, [id]);
 
   const activeDay = trip?.days.find((d) => d.date === activeDate);
 

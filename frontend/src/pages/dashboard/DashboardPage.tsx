@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { destination } from "@/constants/dashboardPage";
+import { getTripApi } from "@/api/trip.api"; 
 import {
   Plus,
   ChevronRight,
@@ -18,7 +19,7 @@ import {
 import Card from "@/components/card/Card";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast } from "react-toastify";
+import useToast from "@/hooks/useToast";
 
 interface ILocation {
   id: string;
@@ -60,31 +61,43 @@ const DashboardPage = () => {
   const [trips, setTrips] = useState<ITrip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
+  const { showToast } = useToast();
   useEffect(() => {
-    let cancelled = false;
-    axios
-      .get("/api/trips/my-trips", { withCredentials: true })
-      .then((res) => {
-        if (!cancelled) setTrips(res.data.data.trips);
-      })
-      .catch(() => {
-        if (!cancelled) toast.error("Failed to load your trips.");
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, []);
+  let cancelled = false;
+
+  const fetchTrips = async () => {
+    try {
+      const data = await getTripApi();
+
+      if (!cancelled) {
+        setTrips(data.data.trips);
+      }
+    } catch  {
+      if (!cancelled) {
+        showToast("error", `"Failed to fetch trip data"`);
+      }
+    } finally {
+      if (!cancelled) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  fetchTrips();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   const handleDelete = async (tripId: string) => {
     setDeletingId(tripId);
     try {
       await axios.delete(`/api/trips/${tripId}`, { withCredentials: true });
       setTrips((prev) => prev.filter((t) => t._id !== tripId));
-      toast.success("Trip deleted.");
+      showToast("success","Trip deleted.");
     } catch {
-      toast.error("Failed to delete trip.");
+      showToast("error","Failed to delete trip.");
     } finally {
       setDeletingId(null);
     }
@@ -228,7 +241,7 @@ const DashboardPage = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => toast.info("Hello YuHang i put a toast here temporary here for you, rmb change to navigate to link to other page")}
+                        onClick={() => showToast("info","Hello YuHang i put a toast here temporary here for you, rmb change to navigate to link to other page")}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-blue-300 hover:text-blue-500"
                       >
                         <Share2 className="h-3.5 w-3.5" />

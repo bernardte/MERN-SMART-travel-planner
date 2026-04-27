@@ -16,8 +16,9 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { planNewTripApi } from "@/api/trip.api";
+import useToast from "@/hooks/useToast";
 
 // Fix default Leaflet icon paths
 const iconProto = L.Icon.Default.prototype as L.Icon.Default & { _getIconUrl?: string };
@@ -169,6 +170,7 @@ const PlanNewTripPage = () => {
   const [mapZoom, setMapZoom] = useState(2);
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { showToast } = useToast();
 
   // ── Derived itinerary for rendering day tabs ──────────────────────────────
   const derivedItinerary = useMemo<DayEntry[]>(() => {
@@ -272,26 +274,23 @@ const PlanNewTripPage = () => {
   // ── Save Itinerary ────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!country.trim()) {
-      toast.error("Please enter a destination.");
+      showToast("error", "Please enter a destination.");
       return;
     }
     if (!startDate || !endDate) {
-      toast.error("Please select your travel dates.");
+      showToast("error", "Please select your travel dates.");
       return;
     }
     const totalLocations = itinerary.reduce((a, d) => a + d.locations.length, 0);
     if (totalLocations === 0) {
-      toast.error("Please add at least one location to your itinerary.");
+      showToast("error", "Please add at least one location to your itinerary.");
       return;
     }
+    
 
     setIsSaving(true);
     try {
-      await axios.post(
-        "/api/trips/save",
-        { country, startDate, endDate, days: itinerary },
-        { withCredentials: true }
-      );
+      await planNewTripApi(country, startDate, endDate, itinerary)
       toast.success("Itinerary saved! Redirecting to dashboard…");
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch {
