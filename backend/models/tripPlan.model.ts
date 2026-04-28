@@ -1,7 +1,7 @@
 import mongoose, { Types } from "mongoose";
 import { sectionSchema } from "./section.model";
 
-export interface ITravelGuide {
+export interface TripPlan {
   _id: Types.ObjectId;
 
   // 🔗 Link to Trip
@@ -38,7 +38,7 @@ export interface ITravelGuide {
   updatedAt: Date;
 }
 
-const travelGuideSchema = new mongoose.Schema<ITravelGuide>(
+const tripPlanSchema = new mongoose.Schema<TripPlan>(
   {
     tripId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -85,13 +85,10 @@ const travelGuideSchema = new mongoose.Schema<ITravelGuide>(
   { timestamps: true },
 );
 
-travelGuideSchema.index({ userId: 1 });
-travelGuideSchema.index({ publishStatus: 1 });
-travelGuideSchema.index({ country: 1 });
+tripPlanSchema.index({ userId: 1 });
+tripPlanSchema.index({ publishStatus: 1 });
+tripPlanSchema.index({ country: 1 });
 
-const TravelGuide = mongoose.model<ITravelGuide>(
-  "TravelGuide",
-  travelGuideSchema,
-);
+const TripPlan = mongoose.model<TripPlan>("TravelGuide", tripPlanSchema);
 
-export default TravelGuide;
+export default TripPlan;

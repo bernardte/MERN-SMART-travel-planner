@@ -19,7 +19,6 @@ import {
   Search,
   Loader2,
   Star,
-  Heart,
   Award,
   Camera,
   Mountain,
@@ -46,8 +45,8 @@ import { useParams } from "react-router-dom";
 import useTripStore from "@/stores/useTripStore";
 import { useShallow } from "zustand/shallow";
 import { LoadingState } from "@/layouts/components/loading/LoadingState";
-import { guideSchema } from "@/lib/zod/travelGuideSchema";
-import { createTravelGuide } from "@/api/travel_guide.api";
+import { tripSchema } from "@/lib/zod/tripSchema";
+import { createTripPlan } from "@/api/trip.api";
 import useAuthStore from "@/stores/useAuthStore";
 
 // ─── Types (aligned to backend schema) ────────────────────────────────────────
@@ -625,7 +624,7 @@ const getCategoryIcon = (category: string) => {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
-const CreatePostPage = () => {
+const TripPlanPage = () => {
   const [guideTitle, setGuideTitle] = useState("Ultimate Travel Guide");
   const [authorIntro, setAuthorIntro] = useState("");
   const { tripId } = useParams();
@@ -920,7 +919,7 @@ const CreatePostPage = () => {
       let result, guideData;
 
       if (imageFile) {
-        result = guideSchema.safeParse({
+        result = tripSchema.safeParse({
           title: guideTitle,
           authorIntro,
           tripId,
@@ -928,7 +927,7 @@ const CreatePostPage = () => {
           thumbnailImage: imageFile,
         });
       } else {
-        result = guideSchema.safeParse({
+        result = tripSchema.safeParse({
           title: guideTitle,
           authorIntro,
           tripId,
@@ -958,7 +957,7 @@ const CreatePostPage = () => {
           tripId,
         };
       }
-      const res = await createTravelGuide(guideData);
+      const res = await createTripPlan(guideData);
       console.log("created post page: ", res);
       showToast("success", "Guide saved!");
       return res.data.data;
@@ -1618,4 +1617,4 @@ const CreatePostPage = () => {
   );
 };
 
-export default CreatePostPage;
+export default TripPlanPage;

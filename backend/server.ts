@@ -1,5 +1,5 @@
 import express from "express";
-import fileupload from "express-fileupload";
+// import fileupload from "express-fileupload";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
@@ -10,7 +10,8 @@ import userRouter from "./routes/users.route";
 import refreshTokenRouter from "./routes/refreshToken.route";
 import { errorHandlingMiddleware } from "./middleware/error_handling.middleware";
 import tripRoute from "./routes/trip.route";
-import travelGuideRoute from "./routes/travel_guide.route";
+import tripPlanRoute from "./routes/tripPlan.route";
+import communityTravelGuideRoute from "./routes/communityTravelGuide.route";
 
 connectDB();
 const app = express();
@@ -30,21 +31,22 @@ app.use(cookieParser()); //get the cookie from request and set the cookie in the
 app.use(express.json());
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 //! create temp directory for file uploads
-app.use(
-  fileupload({
-    useTempFiles: true,
-    tempFileDir: path.join(__dirname, "temp"),
-    createParentPath: true,
-    limits: {
-      fileSize: 10 * 1024 * 1024, // 10MB
-    },
-  }),
-);
+// app.use(
+//   fileupload({
+//     useTempFiles: true,
+//     tempFileDir: path.join(__dirname, "temp"),
+//     createParentPath: true,
+//     limits: {
+//       fileSize: 10 * 1024 * 1024, // 10MB
+//     },
+//   }),
+// );
 
 app.use("/api/refreshToken", refreshTokenRouter);
 app.use("/api/users", userRouter);
 app.use("/api/trips", tripRoute);
-app.use("/api/travel-guide", travelGuideRoute);
+app.use("/api/trips-plan", tripPlanRoute);
+app.use("/api/community", communityTravelGuideRoute);
 
 //! Error handling middleware should be the last middleware for getting all the controller errors.
 app.use(errorHandlingMiddleware);

@@ -1,23 +1,29 @@
 export interface User {
-  _id: string,
+  _id: string;
   email: string;
   username: string;
   name: string;
   profilePicture?: string;
+  bio?: string;
+  followers?: number;
+  following?: number;
+  isVerified?: boolean;
 }
+
+export type PostUserDetails = Omit<User, "email">;
 
 //! Interface of Location and Date is part of Trip attribute
 //! Location -> Date -> Trip
 export interface ILocation {
-  id: string,
-  name: string,
-  note: string,
-  lat: number,
-  lng: number,
+  id: string;
+  name: string;
+  note: string;
+  lat: number;
+  lng: number;
 }
 export interface IDay {
-  date: string,
-  locations: ILocation[]
+  date: string;
+  locations: ILocation[];
 }
 export interface Trip {
   _id: string;
@@ -29,7 +35,6 @@ export interface Trip {
   isTravelGuideCreated: boolean;
   createdAt: string;
 }
-
 
 // Types for data structure
 export interface ListItem {
@@ -78,3 +83,36 @@ export interface TipsSection {
 }
 
 export type Section = TipsSection | DaySection;
+
+//! community post
+export interface TravelGuide {
+  _id: string;
+  title: string;
+  description: string;
+  country: string;
+  thumbnailImage: string;
+  galleryImages?: string[];
+  author: PostUserDetails; // 🔥 mapped from authorId
+  tags: string[];
+  likes: number; // 🔥 length of backend likes[]
+  saves: number;
+  shares: number;
+  isLiked?: boolean;
+  isSaved?: boolean;
+  privacy: "public" | "private";
+  createdAt: Date;
+  updatedAt?: Date;
+  stats?: {
+    views: number;
+  };
+  itinerary?: {
+    _id: string;
+    country: string;
+    title: string;
+  };
+}
+
+export type CreateTravelGuide = Omit<
+  TravelGuide,
+  "_id" | "createdAt" | "updatedAt"
+>;

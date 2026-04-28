@@ -14,7 +14,7 @@ import EditTripPage from "./pages/planNewTrip/editTripPage";
 import PostPage from "./pages/post/PostPage";
 import TravelCommunityGuidesPage from "./pages/community/CommunityPage";
 import TravelGuideFeed from "./pages/travelGuideFeed/TravelGuideFeed";
-import CreatePostPage from "./pages/createPost/CreatePostPage";
+import CreatePostPage from "./pages/tripPlan/TripPlanPage";
 const AuthenticationPage = lazy(
   () => import("./pages/authentication/AuthenticationPage"),
 );
@@ -26,10 +26,6 @@ function App() {
           {/* Public */}
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/auth" element={<AuthenticationPage />} />
-          <Route
-            path="/community-guide"
-            element={<TravelCommunityGuidesPage />}
-          />
 
           <Route element={<ProtectRoute />}>
             <Route path="/plan" element={<PlanNewTripPage />} />
@@ -40,13 +36,20 @@ function App() {
           {/* Private */}
           <Route element={<MainLayout />}>
             <Route path="/home" element={<LandingPage />} />
+            <Route
+              path="/community-guide"
+              element={<TravelCommunityGuidesPage />}
+            />
             <Route element={<ProtectRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/post" element={<PostPage />} />
               <Route path="/feed-post/:id" element={<TravelGuideFeed />} />
-              <Route path="/create-travel-guide/:tripId" element={<CreatePostPage />} />
+              <Route
+                path="/create-travel-guide/:tripId"
+                element={<CreatePostPage />}
+              />
             </Route>
           </Route>
         </Routes>

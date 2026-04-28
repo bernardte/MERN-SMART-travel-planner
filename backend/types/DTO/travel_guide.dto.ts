@@ -1,7 +1,4 @@
-import type { Types } from "mongoose";
-import type { ISections } from "../../models/section.model";
-
-export interface createTravelGuideDTO {
+export interface CreatTripPlanDTO {
   title: string;
   authorIntro: string;
   tripId: string;
