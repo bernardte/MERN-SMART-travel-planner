@@ -127,7 +127,7 @@ const GuideCard: React.FC<{
               {guide.author?._id === user?._id && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onEdit?.(guide?._id)} >
+                  <DropdownMenuItem onClick={() => onEdit?.(guide?._id)}>
                     <Edit3 className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
@@ -192,14 +192,16 @@ const GuideCard: React.FC<{
           {/* Tags */}
           <div className="mb-3 flex flex-wrap gap-1">
             {guide.tags?.slice(0, 3).map((tag, index) => (
-              <Badge
-                key={`${tag}-${index}`}
-                variant="outline"
-                className="px-1.5 text-[10px]"
-              >
+              <Badge key={index} variant="secondary" className="px-3 py-3">
                 #{tag}
               </Badge>
             ))}
+
+            {guide.tags?.length > 3 && (
+              <Badge variant="secondary" className="px-3 py-3">
+                +{guide.tags.length - 3}
+              </Badge>
+            )}
           </div>
 
           {/* Actions */}

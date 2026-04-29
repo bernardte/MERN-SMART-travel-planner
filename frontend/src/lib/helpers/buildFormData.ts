@@ -12,7 +12,7 @@ export const buildFormData = (data: Record<string, any>) => {
 
     // 2. Array
     if (Array.isArray(value)) {
-      value.forEach((item) => formData.append(key, item));
+      formData.append(key, JSON.stringify(value));
       return;
     }
 

@@ -166,12 +166,15 @@ const TagInput: React.FC<{
         <Badge key={index} variant="secondary" className="gap-1 px-2 py-1">
           <Hash className="h-3 w-3" />
           {tag}
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => removeTag(index)}
-            className="hover:bg-muted-foreground/20 ml-1 rounded-full"
+            className="text-muted-foreground h-4 w-4 rounded-full p-0 transition-colors hover:bg-red-100 hover:text-red-400"
           >
             <X className="h-3 w-3" />
-          </button>
+          </Button>
         </Badge>
       ))}
       <input
@@ -257,7 +260,7 @@ const PostModal: React.FC<{
         country: initialData.country || "",
         tags: initialData.tags || [],
         privacy: initialData.privacy || "public",
-        itineraryId: initialData?.itineraryId ?? "none",
+        itineraryId: initialData?.itinerary?._id ?? "none",
         itineraryTitle: initialData.itinerary?.title || "",
         image: undefined,
         imagePreview: initialData.thumbnailImage || undefined,
@@ -566,7 +569,7 @@ const PostModal: React.FC<{
                   render={({ field }) => (
                     <TagInput
                       value={field.value || []}
-                      onChange={field.onChange}
+                      onChange={(tag) => field.onChange([...tag])}
                       placeholder="Type a tag and press Enter or comma..."
                     />
                   )}

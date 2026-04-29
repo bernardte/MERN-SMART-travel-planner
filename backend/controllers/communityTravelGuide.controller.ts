@@ -1,10 +1,11 @@
-import TravelGuide from "../models/community.model";
+import CommunityTravelGuide from "../models/community.model";
 import TripPlan from "../models/tripPlan.model";
 import { successApiResponse } from "../utils/succes_api_response";
 import { AppError } from "../utils/error_api_response";
 import type { Request, Response } from "express";
 import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary";
 import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary";
+import type { Types } from "mongoose";
 
 const createPost = async (req: Request, res: Response) => {
   const { title, description, country, tags, privacy, authorId, itineraryId } =
@@ -15,7 +16,8 @@ const createPost = async (req: Request, res: Response) => {
   if (!title || !description || !country || !authorId || !itineraryId) {
     throw new AppError(400, "All field are required!");
   }
-  const parsedTags = Array.isArray(tags) ? tags : [tags];
+
+  const parsedTags = Array.isArray(tags) ? tags : JSON.parse(tags);
 
   if (!req.file) {
     throw new AppError(400, "Thumbnail image is required!");
@@ -27,7 +29,7 @@ const createPost = async (req: Request, res: Response) => {
   );
 
   //! Create new post
-  const newPost = await TravelGuide.create({
+  const newPost = await CommunityTravelGuide.create({
     title,
     description,
     country,
@@ -41,7 +43,7 @@ const createPost = async (req: Request, res: Response) => {
     views: 0,
   });
 
-  const populated = await TravelGuide.findById(newPost._id)
+  const populated = await CommunityTravelGuide.findById(newPost._id)
     .populate("authorId", "username name email profilePicture")
     .populate("itineraryId");
 
@@ -76,7 +78,7 @@ const editPost = async (req: Request, res: Response) => {
   if (!postId) throw new AppError(400, "Post ID are required");
 
   // Check if post exists
-  const existingPost = await TravelGuide.findById(postId);
+  const existingPost = await CommunityTravelGuide.findById(postId);
 
   if (!existingPost) throw new AppError(404, "Post not found");
 
@@ -89,15 +91,16 @@ const editPost = async (req: Request, res: Response) => {
   if (itineraryId !== undefined) existingPost.itineraryId = itineraryId;
 
   if (tags !== undefined) {
-    if (Array.isArray(tags)) {
-      existingPost.tags = tags;
-    } else {
+    console.log(Array.isArray(tags));
+    let parsedTags = [];
+    if (typeof tags === "string") {
       try {
-        existingPost.tags = JSON.parse(tags);
+        parsedTags = JSON.parse(tags);
       } catch {
-        existingPost.tags = [];
+        parsedTags = [];
       }
     }
+    existingPost.tags = parsedTags;
   }
 
   // image update
@@ -113,11 +116,40 @@ const editPost = async (req: Request, res: Response) => {
     existingPost.thumbnailImagePublicId = public_id;
   }
 
-  const updatedPost = await existingPost.save();
-  console.log(updatedPost);
+  // 1. Save the post
+  await existingPost.save();
 
-  successApiResponse(res, 200, "updated successfully", updatedPost);
-};
+  // 2. Fetch it again and populate the required fields
+  const populatedPost = await CommunityTravelGuide.findById(existingPost._id)
+    .populate("authorId", "username name email profilePicture")
+    .populate("itineraryId");
+
+
+  const obj = populatedPost!.toObject();
+
+  // 3. Normalize the data to match your frontend interface
+  const normalized = {
+    ...obj,
+    author: obj.authorId,
+    authorId: undefined,
+    likes: obj.likes?.length || 0,
+    saves: obj.postSavedByUser?.length || 0,
+    stats: {
+      views: obj.views || 0,
+    },
+    itinerary: obj.itineraryId
+      ? {
+          _id: (obj.itineraryId as Types.ObjectId)._id,
+          title: (obj.itineraryId as any).title,
+          country: (obj.itineraryId as any).country,
+        }
+      : null,
+  };
+
+
+  // 4. Send the normalized data back
+  successApiResponse(res, 200, "updated successfully", normalized);
+};;
 
 const fetchUserItinerary = async (
   req: Request<{ authorId: string }>,
@@ -137,7 +169,7 @@ const fetchUserItinerary = async (
 };
 
 const getAllPublicPost = async (req: Request, res: Response) => {
-  const allPublicPost = await TravelGuide.find({
+  const allPublicPost = await CommunityTravelGuide.find({
     privacy: "public",
   })
     .populate("authorId", "username name email profilePicture")
@@ -185,7 +217,7 @@ const deleteOwnPost = async (req: Request, res: Response) => {
   const { postId } = req.params;
   const userId = req.user?._id;
 
-  const post = await TravelGuide.findById(postId);
+  const post = await CommunityTravelGuide.findById(postId);
 
   if (!post) {
     throw new AppError(404, "Post not found");
@@ -206,10 +238,17 @@ const deleteOwnPost = async (req: Request, res: Response) => {
   // const publicId = `travel_guide/${fileWithExt?.split(".")[0]}`;
   if (post.thumbnailImagePublicId) {
     await deleteFromCloudinary(post.thumbnailImagePublicId)
-    await TravelGuide.findByIdAndDelete(postId);
+    await CommunityTravelGuide.findByIdAndDelete(postId);
     successApiResponse(res, 200, "Post deleted successfully");
   }
 };
+
+// const likeAndUnlikePost = async (req: Request, res: Response) => {
+//     const { postId } = req.params;
+//     const userId = req.user?._id;
+
+//     const post =
+// }
 
 export default {
   createPost,
@@ -217,4 +256,5 @@ export default {
   fetchUserItinerary,
   getAllPublicPost,
   deleteOwnPost,
-};
+  // likeAndUnlikePost,
+}
