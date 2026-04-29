@@ -6,6 +6,7 @@ import type { Request, Response } from "express";
 import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary";
 import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary";
 import type { Types } from "mongoose";
+import { mongoDBObjectIDConverter } from "../utils/helpers/mongoDBObjectIDConverter";
 
 const createPost = async (req: Request, res: Response) => {
   const { title, description, country, tags, privacy, authorId, itineraryId } =
@@ -124,7 +125,6 @@ const editPost = async (req: Request, res: Response) => {
     .populate("authorId", "username name email profilePicture")
     .populate("itineraryId");
 
-
   const obj = populatedPost!.toObject();
 
   // 3. Normalize the data to match your frontend interface
@@ -146,10 +146,9 @@ const editPost = async (req: Request, res: Response) => {
       : null,
   };
 
-
   // 4. Send the normalized data back
   successApiResponse(res, 200, "updated successfully", normalized);
-};;
+};
 
 const fetchUserItinerary = async (
   req: Request<{ authorId: string }>,
@@ -176,7 +175,6 @@ const getAllPublicPost = async (req: Request, res: Response) => {
     .sort({ createdAt: -1 });
 
   console.log(allPublicPost);
-
 
   //! normalize data
   const normalized = allPublicPost.map((post) => {
@@ -223,7 +221,7 @@ const deleteOwnPost = async (req: Request, res: Response) => {
     throw new AppError(404, "Post not found");
   }
 
-  if(!userId){
+  if (!userId) {
     throw new AppError(401, "Unauthorized");
   }
 
@@ -237,18 +235,48 @@ const deleteOwnPost = async (req: Request, res: Response) => {
   // const fileWithExt = parts[parts.length - 1];
   // const publicId = `travel_guide/${fileWithExt?.split(".")[0]}`;
   if (post.thumbnailImagePublicId) {
-    await deleteFromCloudinary(post.thumbnailImagePublicId)
+    await deleteFromCloudinary(post.thumbnailImagePublicId);
     await CommunityTravelGuide.findByIdAndDelete(postId);
     successApiResponse(res, 200, "Post deleted successfully");
   }
 };
 
-// const likeAndUnlikePost = async (req: Request, res: Response) => {
-//     const { postId } = req.params;
-//     const userId = req.user?._id;
+const likeAndUnlikePost = async (req: Request, res: Response) => {
+  const { postId } = req.params;
+  const userId = req.user?._id;
 
-//     const post =
-// }
+  if (!postId || Array.isArray(postId)) {
+    throw new AppError(400, "Invalid postId");
+  }
+  
+  if (!userId) throw new AppError(401, "Unauthorized");
+  
+  const post = await CommunityTravelGuide.findById(postId);
+  if (!post) throw new AppError(404, "Post not found");
+  
+  const postObjectId = mongoDBObjectIDConverter(postId);
+
+  // @ts-ignore
+  const existing = await CommunityTravelGuide.findOne({
+    _id: postObjectId,
+    likes: userId,
+  });
+
+  if (existing) {
+    await CommunityTravelGuide.updateOne(
+      { _id: postId },
+      { $pull: { likes: userId } },
+    );
+    successApiResponse(res, 200, "Post unliked successfully");
+  } else {
+    await CommunityTravelGuide.updateOne(
+      { _id: postId },
+      { $addToSet: { likes: userId } },
+    );
+    await post.save();
+    successApiResponse(res, 200, "Post liked successfully");
+  }
+};
 
 export default {
   createPost,
@@ -256,5 +284,5 @@ export default {
   fetchUserItinerary,
   getAllPublicPost,
   deleteOwnPost,
-  // likeAndUnlikePost,
-}
+  likeAndUnlikePost,
+};
