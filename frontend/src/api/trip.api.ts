@@ -39,7 +39,7 @@ export async function getSpecificTripApi(id:string) {
 }
 
 
-export const createTripPlan = async (tripData: tripSchemaType) => {
+export const createTripPlanApi = async (tripData: tripSchemaType) => {
   const formData = new FormData();
   Object.entries(tripData).forEach(([key, value]) => {
     formData.append(

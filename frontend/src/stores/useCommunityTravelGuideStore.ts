@@ -1,7 +1,7 @@
 import {
   deleteOwnPostApi,
   getAllPublicPostApi,
-  getItinerariesByUserId,
+  getItinerariesByUserIdApi,
 } from "@/api/travel_guide.api";
 import type { TravelGuide } from "@/types/interface.type";
 import { create } from "zustand";
@@ -10,7 +10,11 @@ import { immer } from "zustand/middleware/immer";
 interface communityTravelGuideStore {
   itineraries: TravelGuide[] | null;
   publicPost: TravelGuide[] | null;
-  error: null | string;
+  error: {
+    publicPostError: string | null;
+    itinerariesError: string | null;
+    deletePostError: string | null;
+  };
   loading: {
     publicPost: boolean;
     itineraries: boolean;
@@ -24,7 +28,11 @@ interface communityTravelGuideStore {
 const useCommunityTravelGuideStore = create<communityTravelGuideStore>()(
   immer((set) => ({
     itineraries: null,
-    error: null,
+    error: {
+      publicPostError: null,
+      itinerariesError: null,
+      deletePostError: null,
+    },
     loading: {
       publicPost: false,
       itineraries: false,
@@ -34,14 +42,14 @@ const useCommunityTravelGuideStore = create<communityTravelGuideStore>()(
     getSpecificUserItineraries: async (userId: string) => {
       set((state) => {
         state.loading.itineraries = true;
-        state.error = null
+        state.error.itinerariesError = null;
       });
       try {
-        const result = await getItinerariesByUserId(userId);
+        const result = await getItinerariesByUserIdApi(userId);
         set({ itineraries: result.data.data });
       } catch (error: any) {
          set((state) => {
-           state.error =
+           state.error.itinerariesError =
              error?.response?.data?.message || "failed to fetch specific user itineraries";
          });
       } finally {
@@ -53,7 +61,7 @@ const useCommunityTravelGuideStore = create<communityTravelGuideStore>()(
     getAllPublicPost: async () => {
       set((state) => {
         state.loading.publicPost = true;
-        state.error = null;
+        state.error.publicPostError = null
       });
       try {
         const result = await getAllPublicPostApi();
@@ -61,9 +69,9 @@ const useCommunityTravelGuideStore = create<communityTravelGuideStore>()(
         set({ publicPost: result.data.data });
       } catch (error: any) {
         set((state) => {
-          state.error =
-            error?.response?.data?.message ||
-            "failed to fetch all public post";
+         state.error.publicPostError =
+           error?.response?.data?.message ||
+           "failed to get public post";
         });
       } finally {
         set((state) => {
@@ -74,7 +82,7 @@ const useCommunityTravelGuideStore = create<communityTravelGuideStore>()(
     deleteOwnPost: async (postId: string) => {
       set((state) => {
         state.loading.deletePost = true;
-        state.error = null;
+        state.error.deletePostError = null;
       });
       try {
         await deleteOwnPostApi(postId);
@@ -87,16 +95,16 @@ const useCommunityTravelGuideStore = create<communityTravelGuideStore>()(
         });
       } catch (error: any) {
         set((state) => {
-          state.error =
-            error?.response?.data?.message || "failed to delete own post";
+         state.error.deletePostError =
+           error?.response?.data?.message || "failed to delete own post";
         });
       } finally {
         set((state) => {
-          state.loading.publicPost = false;
-          state.error = null;
+          state.loading.deletePost = false;
         });
       }
     },
+    
   })),
 );
 

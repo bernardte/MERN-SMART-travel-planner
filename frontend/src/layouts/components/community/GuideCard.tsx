@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, type SetStateAction } from "react";
 import {
   Heart,
   MessageCircle,
@@ -127,7 +127,7 @@ const GuideCard: React.FC<{
               {guide.author?._id === user?._id && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onEdit?.(guide?._id)}>
+                  <DropdownMenuItem onClick={() => onEdit?.(guide?._id)} >
                     <Edit3 className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>

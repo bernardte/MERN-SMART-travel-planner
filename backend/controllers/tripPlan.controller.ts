@@ -59,5 +59,4 @@ const createTrip = async (
 
 export default {
   createTrip,
-
 };

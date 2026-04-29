@@ -46,7 +46,7 @@ import useTripStore from "@/stores/useTripStore";
 import { useShallow } from "zustand/shallow";
 import { LoadingState } from "@/layouts/components/loading/LoadingState";
 import { tripSchema } from "@/lib/zod/tripSchema";
-import { createTripPlan } from "@/api/trip.api";
+import { createTripPlanApi } from "@/api/trip.api";
 import useAuthStore from "@/stores/useAuthStore";
 
 // ─── Types (aligned to backend schema) ────────────────────────────────────────
@@ -957,7 +957,7 @@ const TripPlanPage = () => {
           tripId,
         };
       }
-      const res = await createTripPlan(guideData);
+      const res = await createTripPlanApi(guideData);
       console.log("created post page: ", res);
       showToast("success", "Guide saved!");
       return res.data.data;

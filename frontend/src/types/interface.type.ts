@@ -91,7 +91,7 @@ export interface TravelGuide {
   description: string;
   country: string;
   thumbnailImage: string;
-  galleryImages?: string[];
+  imagePreviews?: string[];
   author: PostUserDetails; // 🔥 mapped from authorId
   tags: string[];
   likes: number; // 🔥 length of backend likes[]
@@ -99,6 +99,7 @@ export interface TravelGuide {
   shares: number;
   isLiked?: boolean;
   isSaved?: boolean;
+  itineraryId: string;
   privacy: "public" | "private";
   createdAt: Date;
   updatedAt?: Date;
