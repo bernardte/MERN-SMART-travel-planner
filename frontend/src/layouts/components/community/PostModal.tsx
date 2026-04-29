@@ -257,7 +257,7 @@ const PostModal: React.FC<{
         country: initialData.country || "",
         tags: initialData.tags || [],
         privacy: initialData.privacy || "public",
-        itineraryId: initialData?.itineraryId ?? "none",
+        itineraryId: initialData?.itinerary?._id ?? "none",
         itineraryTitle: initialData.itinerary?.title || "",
         image: undefined,
         imagePreview: initialData.thumbnailImage || undefined,
