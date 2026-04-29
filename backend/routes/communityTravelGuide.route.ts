@@ -13,6 +13,7 @@ route.get(
 route.get("/itineraries/:authorId", protectRoute, asyncHandler(communityTravelGuideController.fetchUserItinerary));
 route.post("/create/post", protectRoute, upload.single("image"), asyncHandler(communityTravelGuideController.createPost));
 route.patch("/edit/post/:postId", protectRoute, upload.single("image"), asyncHandler(communityTravelGuideController.editPost));
+route.post("/liked-and-unliked/post", protectRoute, asyncHandler(communityTravelGuideController.likeAndUnlikePost));
 route.delete(
   "/delete-own-post/:postId",
   protectRoute,
