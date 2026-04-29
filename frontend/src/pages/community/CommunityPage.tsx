@@ -22,7 +22,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import CreatePostModal from "@/layouts/components/community/CreatePostModal";
 import GuideCard from "@/layouts/components/community/GuideCard";
 import type { TravelGuide } from "@/types/interface.type";
 import useCommunityTravelGuideStore from "@/stores/useCommunityTravelGuideStore";
@@ -30,6 +29,8 @@ import { useShallow } from "zustand/shallow";
 import { LoadingState } from "@/layouts/components/loading/LoadingState";
 import useToast from "@/hooks/useToast";
 import { motion, AnimatePresence } from "framer-motion";
+import PostModal from "@/layouts/components/community/PostModal";
+import useAuthStore from "@/stores/useAuthStore";
 
 const TravelCommunityGuidesPage: React.FC = () => {
   const [guides, setGuides] = useState<TravelGuide[]>([]);
@@ -42,7 +43,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
   const {
     getAllPublicPost,
     publicPostLoading,
-    error,
+    publicPostError,
     publicPost,
     deleteOwnPost,
     deletePostLoading,
@@ -50,14 +51,16 @@ const TravelCommunityGuidesPage: React.FC = () => {
     useShallow((state) => ({
       getAllPublicPost: state.getAllPublicPost,
       publicPostLoading: state.loading.publicPost,
-      error: state.error,
+      publicPostError: state.error.publicPostError,
       publicPost: state.publicPost,
       deleteOwnPost: state.deleteOwnPost,
       deletePostLoading: state.loading.deletePost,
     })),
   );
   const { showToast } = useToast();
-
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedGuide, setSelectedGuide] = useState<TravelGuide | null>(null);
+  const user = useAuthStore(state => state.user);
   useEffect(() => {
     getAllPublicPost();
   }, [getAllPublicPost]);
@@ -143,18 +146,27 @@ const TravelCommunityGuidesPage: React.FC = () => {
     deleteOwnPost(postId);
   };
 
-  const handleGuideCreated = (newGuide: TravelGuide) => {
-    setGuides([newGuide, ...guides]);
+  //! frontend store the specific guide before preparing pass to post modal
+  const handleEdit = (postId: string) => {
+    const guide = guides.find((guide) => guide._id === postId);
+    setEditModalOpen(true);
+    if (guide) setSelectedGuide(guide);
   };
 
+  //! frontend UI update, when created a new post
+  const handleGuideCreated = (res: TravelGuide) => {
+  const newGuide = res;
+
+  setGuides((prev) => [newGuide, ...prev]);
+};
+
+  useEffect(() => {
+    if (publicPostError) {
+      showToast("error", "Failed to fetch public post");
+    }
+  }, [publicPostError]);
+
   if (publicPostLoading) return <LoadingState />;
-
-  if (error) {
-    showToast("error", "Unexpected error occur");
-    showToast("error", "Error loading data");
-    return;
-  }
-
   const getSortIcon = () => {
     switch (sortBy) {
       case "likes":
@@ -182,7 +194,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-cyan-50/30 ml-4 md:m-0">
+    <div className="ml-4 min-h-screen bg-gradient-to-br from-slate-50 via-white to-cyan-50/30 md:m-0">
       {/* Animated Background Elements */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <motion.div
@@ -266,7 +278,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
                 <div className="flex -space-x-2">
                   {[...Array(4)].map((_, i) => (
                     <motion.div
-                      key={i}
+                      key={`avatar-${i}`}
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ delay: i * 0.1 }}
@@ -288,14 +300,16 @@ const TravelCommunityGuidesPage: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, type: "spring" }}
             >
-              <Button
-                onClick={() => setCreateModalOpen(true)}
-                className="group bg-white px-3 py-6 text-blue-600 shadow-lg hover:bg-white/90 hover:shadow-xl"
-              >
-                <PlusCircle className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" />
-                Share Your Story
-                <ArrowRight className="ml-2 h-4 w-4 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
-              </Button>
+              {user && (
+                <Button
+                  onClick={() => setCreateModalOpen(true)}
+                  className="group bg-white px-3 py-6 text-blue-600 shadow-lg hover:bg-white/90 hover:shadow-xl"
+                >
+                  <PlusCircle className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" />
+                  Share Your Story
+                  <ArrowRight className="ml-2 h-4 w-4 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+                </Button>
+              )}
             </motion.div>
           </div>
         </motion.div>
@@ -482,6 +496,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
                   onSave={handleSave}
                   onShare={handleShare}
                   onDelete={handleDelete}
+                  onEdit={handleEdit}
                   isLoading={deletePostLoading}
                 />
               </motion.div>
@@ -545,11 +560,29 @@ const TravelCommunityGuidesPage: React.FC = () => {
       </div>
 
       {/* Create Post Modal */}
-      <CreatePostModal
-        open={createModalOpen}
-        onOpenChange={setCreateModalOpen}
-        onPostCreated={handleGuideCreated}
-      />
+      {createModalOpen && (
+        <PostModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          onPostCreated={handleGuideCreated}
+          mode="create"
+        />
+      )}
+      {editModalOpen && (
+        <PostModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          initialData={selectedGuide}
+          onPostUpdated={(updatedGuide) => {
+            setGuides((prev) =>
+              prev.map((guide) =>
+                guide._id === updatedGuide._id ? updatedGuide : guide,
+              ),
+            );
+          }}
+          mode="edit"
+        />
+      )}
     </div>
   );
 };

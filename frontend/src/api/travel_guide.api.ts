@@ -1,10 +1,9 @@
 import axiosInstance from "@/lib/axios";
 import { handleApiResponse } from "@/lib/helpers/apiWrapper";
-import type { CreateTravelGuideInputSchemaType } from "@/lib/zod/travelGuideSchema";
+import type { travelGuideSchemaType } from "@/lib/zod/travelGuideSchema";
 import { buildFormData } from "@/lib/helpers/buildFormData";
-import { normalizeTravelGuide } from "@/lib/mapper/normalizeTravelGudie";
 
-export const getItinerariesByUserId = async (userId: string) => {
+export const getItinerariesByUserIdApi = async (userId: string) => {
   const response = await axiosInstance.get(
     `/api/community/itineraries/${userId}`,
   );
@@ -12,8 +11,8 @@ export const getItinerariesByUserId = async (userId: string) => {
   return handleApiResponse(response);
 };
 
-export const createTravelGuide = async (
-  data: CreateTravelGuideInputSchemaType & { image?: File },
+export const createTravelGuideApi = async (
+  data: travelGuideSchemaType & { image?: File },
   onProgress?: (percent: number) => void,
 ) => {
   const formData = buildFormData(data);
@@ -30,7 +29,29 @@ export const createTravelGuide = async (
     },
   });
 
-  return res.data;
+  return res.data.data;
+};
+
+export const updateTravelGuideApi = async (
+  postId: string,
+  data: travelGuideSchemaType & { image?: File },
+  onProgress?: (percent: number) => void,
+) => {
+
+  const formData = buildFormData(data);
+  console.log(data);
+  const response = await axiosInstance.patch(
+    "/api/community/edit/post/" + postId,
+    formData,
+    {
+      onUploadProgress: (event) => {
+        if (!onProgress || !event.total) return;
+        onProgress?.(Math.round((event.loaded * 100) / event.total));
+      },
+    },
+  );
+
+  return response.data.data;
 };
 
 export const getAllPublicPostApi = async () => {
