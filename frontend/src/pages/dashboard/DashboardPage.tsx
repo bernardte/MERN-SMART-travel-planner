@@ -4,7 +4,6 @@ import { getTripApi,deleteTripApi } from "@/api/trip.api";
 import {
   Plus,
   ChevronRight,
-  MoreHorizontal,
   Compass,
   Calendar,
   Users,
@@ -12,10 +11,9 @@ import {
   MapPin,
   Trash2,
   Loader2,
-  Share2,
   Eye,
   Pencil,
-  Send,
+  FileEdit,
 } from "lucide-react";
 import Card from "@/components/card/Card";
 import { useNavigate } from "react-router-dom";
@@ -148,9 +146,6 @@ const handleDelete = async (tripId:string) => {
                   MY TRIPS
                 </h2>
               </div>
-              <button className="text-gray-400 hover:text-gray-600">
-                <MoreHorizontal className="h-5 w-5" />
-              </button>
             </div>
 
             {/* Loading */}
@@ -223,14 +218,14 @@ const handleDelete = async (tripId:string) => {
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-[1.02] hover:shadow-md"
                       >
                         <Eye className="h-3.5 w-3.5" />
-                        View
+                        View Trip
                       </button>
                       <button
                         onClick={() => navigate(`/trips/${trip._id}/edit`)}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-violet-300 hover:text-violet-500"
                       >
                         <Pencil className="h-3.5 w-3.5" />
-                        Edit
+                        Edit Trip
                       </button>
 
                       {trip.isTravelGuideCreated ? (
@@ -244,8 +239,8 @@ const handleDelete = async (tripId:string) => {
                           }
                           className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-blue-300 hover:text-blue-500"
                         >
-                          <Send className="h-3.5 w-3.5" />
-                          Create Travel Guide
+                          <FileEdit className="h-3.5 w-3.5" />
+                          Travel Guide Editor
                         </button>
                       )}
                     </div>
