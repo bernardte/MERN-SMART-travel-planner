@@ -566,7 +566,7 @@ const PostModal: React.FC<{
                   render={({ field }) => (
                     <TagInput
                       value={field.value || []}
-                      onChange={field.onChange}
+                      onChange={(tag) => field.onChange([...tag])}
                       placeholder="Type a tag and press Enter or comma..."
                     />
                   )}

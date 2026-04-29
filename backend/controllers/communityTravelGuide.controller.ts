@@ -16,7 +16,8 @@ const createPost = async (req: Request, res: Response) => {
   if (!title || !description || !country || !authorId || !itineraryId) {
     throw new AppError(400, "All field are required!");
   }
-  const parsedTags = Array.isArray(tags) ? tags : [tags];
+
+  const parsedTags = Array.isArray(tags) ? tags : JSON.parse(tags);
 
   if (!req.file) {
     throw new AppError(400, "Thumbnail image is required!");
@@ -90,15 +91,16 @@ const editPost = async (req: Request, res: Response) => {
   if (itineraryId !== undefined) existingPost.itineraryId = itineraryId;
 
   if (tags !== undefined) {
-    if (Array.isArray(tags)) {
-      existingPost.tags = tags;
-    } else {
+    console.log(Array.isArray(tags));
+    let parsedTags = [];
+    if (typeof tags === "string") {
       try {
-        existingPost.tags = JSON.parse(tags);
+        parsedTags = JSON.parse(tags);
       } catch {
-        existingPost.tags = [];
+        parsedTags = [];
       }
     }
+    existingPost.tags = parsedTags;
   }
 
   // image update
@@ -122,7 +124,6 @@ const editPost = async (req: Request, res: Response) => {
     .populate("authorId", "username name email profilePicture")
     .populate("itineraryId");
 
-  console.log("populatedPost: ", populatedPost);
 
   const obj = populatedPost!.toObject();
 
@@ -145,7 +146,6 @@ const editPost = async (req: Request, res: Response) => {
       : null,
   };
 
-  console.log("normalized: ", normalized);
 
   // 4. Send the normalized data back
   successApiResponse(res, 200, "updated successfully", normalized);
