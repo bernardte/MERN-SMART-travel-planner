@@ -1,4 +1,6 @@
 import axiosInstance from "@/lib/axios";
+import { handleApiResponse } from "@/lib/helpers/apiWrapper";
+import type { tripSchemaType } from "@/lib/zod/tripSchema";
 import type { DayEntry } from "@/pages/planNewTrip/editTripPage";
 
 export async function planNewTripApi(country: string, startDate: string, endDate: string, days: DayEntry[]){
@@ -26,14 +28,26 @@ export async function getTripApi(){
     const response = await axiosInstance.get(
         "/api/trips/my-trips"
     );
-    console.log(response);
     return response.data;
 }
-
-
+ 
 export async function getSpecificTripApi(id:string) {
   const res = await axiosInstance.get(
     `/api/trips/${id}`
   );
   return res.data.data.trip;
 }
+
+
+export const createTripPlan = async (tripData: tripSchemaType) => {
+  const formData = new FormData();
+  Object.entries(tripData).forEach(([key, value]) => {
+    formData.append(
+      key,
+      typeof value === "object" ? JSON.stringify(value) : value,
+    );
+  });
+  const res = await axiosInstance.post("/api/trips-plan/create", formData);
+
+  return handleApiResponse(res);
+};

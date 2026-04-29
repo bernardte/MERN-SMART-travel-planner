@@ -11,6 +11,10 @@ import { ProtectRoute } from "./lib/helpers/protectRoute";
 import PlanNewTripPage from "./pages/planNewTrip/planNewTripPage";
 import ViewTripPage from "./pages/planNewTrip/viewTripPage";
 import EditTripPage from "./pages/planNewTrip/editTripPage";
+import PostPage from "./pages/post/PostPage";
+import TravelCommunityGuidesPage from "./pages/community/CommunityPage";
+import TravelGuideFeed from "./pages/travelGuideFeed/TravelGuideFeed";
+import CreatePostPage from "./pages/tripPlan/TripPlanPage";
 const AuthenticationPage = lazy(
   () => import("./pages/authentication/AuthenticationPage"),
 );
@@ -19,6 +23,7 @@ function App() {
     <>
       <Suspense fallback={<LoadingState />}>
         <Routes>
+          {/* Public */}
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/auth" element={<AuthenticationPage />} />
 
@@ -28,12 +33,23 @@ function App() {
             <Route path="/trips/:id/edit" element={<EditTripPage />} />
           </Route>
 
+          {/* Private */}
           <Route element={<MainLayout />}>
             <Route path="/home" element={<LandingPage />} />
+            <Route
+              path="/community-guide"
+              element={<TravelCommunityGuidesPage />}
+            />
             <Route element={<ProtectRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/history" element={<HistoryPage />} />
+              <Route path="/post" element={<PostPage />} />
+              <Route path="/feed-post/:id" element={<TravelGuideFeed />} />
+              <Route
+                path="/create-travel-guide/:tripId"
+                element={<CreatePostPage />}
+              />
             </Route>
           </Route>
         </Routes>

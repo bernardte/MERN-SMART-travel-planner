@@ -14,6 +14,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import type { Trip } from "@/types/interface.type";
 
 // Fix Leaflet icon
 const iconProto = L.Icon.Default.prototype as L.Icon.Default & { _getIconUrl?: string };
@@ -24,32 +25,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface ILocation {
-  id: string;
-  name: string;
-  note: string;
-  lat: number;
-  lng: number;
-}
-
-interface IDay {
-  date: string;
-  locations: ILocation[];
-}
-
-interface ITrip {
-  _id: string;
-  country: string;
-  startDate: string;
-  endDate: string;
-  days: IDay[];
-  createdAt: string;
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const formatDate = (iso: string) =>
   new Date(iso + "T00:00:00").toLocaleDateString("en-US", {
     weekday: "long",
@@ -99,7 +75,7 @@ const MapController = ({ center, zoom }: { center: [number, number]; zoom: numbe
 
 const ViewTripPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [trip, setTrip] = useState<ITrip | null>(null);
+  const [trip, setTrip] = useState<Trip | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([20, 0]);

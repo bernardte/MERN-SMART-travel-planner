@@ -11,6 +11,9 @@ export const env = createEnv({
     JWT_ACCESS_TOKEN: z.string().min(1, "Access token is requried"),
     JWT_REFRESH_TOKEN: z.string().min(1, "Refresh token is required"),
     NODE_ENV: z.string().min(1, "Node environment is required"),
+    CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
+    CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required"),
+    CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_NAME is required")
   },
 
   runtimeEnv: process.env,

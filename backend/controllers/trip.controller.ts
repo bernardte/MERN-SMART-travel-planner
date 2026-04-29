@@ -1,19 +1,11 @@
 import type { Request, Response } from "express";
-import mongoose from "mongoose";
 import Trip from "../models/trip.model";
 import { successApiResponse } from "../utils/succes_api_response";
 import { AppError } from "../utils/error_api_response";
-import type { IDay } from "../models/trip.model";
-
-interface SaveTripBody {
-  country: string;
-  startDate: string;
-  endDate: string;
-  days: IDay[];
-}
+import type { SaveTripBodyDTO } from "../types/DTO/trip.dto";
 
 const saveTrip = async (
-  req: Request<{}, {}, SaveTripBody>,
+  req: Request<{}, {}, SaveTripBodyDTO>,
   res: Response,
 ): Promise<void> => {
   if (!req.user) throw new AppError(401, "Unauthorized");
@@ -56,7 +48,7 @@ const getTripById = async (
 };
 
 const updateTrip = async (
-  req: Request<{ id: string }, {}, SaveTripBody>,
+  req: Request<{ id: string }, {}, SaveTripBodyDTO>,
   res: Response,
 ): Promise<void> => {
   if (!req.user) throw new AppError(401, "Unauthorized");

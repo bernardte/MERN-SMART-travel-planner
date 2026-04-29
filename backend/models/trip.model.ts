@@ -1,4 +1,5 @@
 import mongoose, { type ObjectId } from "mongoose";
+import { boolean } from "zod";
 
 export interface ILocation {
   id: string;
@@ -20,6 +21,7 @@ export interface ITrip {
   startDate: string;
   endDate: string;
   days: IDay[];
+  isTravelGuideCreated: boolean;
 }
 
 const locationSchema = new mongoose.Schema<ILocation>(
@@ -52,6 +54,10 @@ const tripSchema = new mongoose.Schema<ITrip>(
     startDate: { type: String, required: true },
     endDate: { type: String, required: true },
     days: { type: [daySchema], default: [] },
+    isTravelGuideCreated: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
