@@ -5,9 +5,11 @@ export interface User {
   name: string;
   profilePicture?: string;
   bio?: string;
-  followers?: number;
-  following?: number;
+  followers: string[];
+  following: string[];
   isVerified?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type PostUserDetails = Omit<User, "email">;
@@ -97,6 +99,7 @@ export interface TravelGuide {
   likes: number;
   postLikedByUser: string[]; // 🔥 length of backend likes[]
   saves: number;
+  views: number;
   shares: number;
   isLiked?: boolean;
   isSaved?: boolean;

@@ -6,7 +6,6 @@ import {
   Users,
   Plane,
   Coffee,
-  Mountain,
   Camera,
   Clock,
   Battery,

@@ -1,7 +1,13 @@
 import { navigationItems } from "@/constants/landingPage";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ChevronDown, History, LogOut, Menu, UserCircle2 } from "lucide-react";
+import {
+  BookMarked,
+  ChevronDown,
+  LogOut,
+  Menu,
+  UserCircle2,
+} from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import useAuthStore from "@/stores/useAuthStore";
 import useHandleLogout from "@/hooks/useHandlingLogout";
@@ -13,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+const preloadProfile = () => import("../pages/profile/ProfilePage");
 
 const headerVariants: Variants = {
   hidden: { y: -20, opacity: 0 },
@@ -40,7 +47,7 @@ const Navbar = () => {
   const user = useAuthStore((state) => state.user);
   const { handleLogout, isLoading: isLoggingOut } = useHandleLogout();
   const displayName = user
-    ? String(user.name || user.username || user.email || "Traveler")
+    ? String(user.username || user.email || "Traveler")
     : "Traveler";
   const displayEmail = user ? String(user.email || "") : "";
   const avatarInitial = displayName.charAt(0).toUpperCase();
@@ -55,7 +62,6 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [location.pathname]);
 
-
   const isActive = (path: string) => {
     if (path === "/" && ["/", "/home"].includes(location.pathname)) return true;
     if (path !== "/" && location.pathname.startsWith(path)) return true;
@@ -63,12 +69,12 @@ const Navbar = () => {
   };
 
   const filteredNavItems = navigationItems.filter((item) => {
-    if(item.link === "/dashboard"){
+    if (item.link === "/dashboard") {
       return !!user; // only show if logged in
     }
 
     return true;
-  })
+  });
 
   const renderUserMenu = (isTransparentMode: boolean) => {
     if (!user) return null;
@@ -85,8 +91,8 @@ const Navbar = () => {
                 : "bg-white text-gray-700 shadow-sm ring-gray-200 hover:bg-gray-50"
             }`}
           >
-            <div className="from-primary flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br to-cyan-500 text-xs font-semibold text-white shadow-md">
-              {avatarInitial}
+            <div className="from-primary flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-300 to-cyan-500 text-xs font-semibold text-white shadow-md">
+              {user?.profilePicture ? user?.profilePicture : avatarInitial}
             </div>
             <div className="hidden max-w-24 text-left sm:block">
               <p className="truncate text-sm leading-tight">{displayName}</p>
@@ -121,16 +127,20 @@ const Navbar = () => {
           <DropdownMenuSeparator />
 
           <DropdownMenuItem asChild className="rounded-xl px-3 py-2">
-            <Link to="/profile" className="flex items-center gap-2">
+            <Link
+              to={`/profile/${user.username}`}
+              className="flex items-center gap-2"
+              onMouseEnter={preloadProfile}
+            >
               <UserCircle2 className="h-4 w-4 text-blue-500" />
               <span>Profile</span>
             </Link>
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild className="rounded-xl px-3 py-2">
-            <Link to="/history" className="flex items-center gap-2">
-              <History className="h-4 w-4 text-violet-500" />
-              <span>History</span>
+            <Link to="/favourite-post" className="flex items-center gap-2">
+              <BookMarked className="h-4 w-4 text-violet-500" />
+              <span>Favourites</span>
             </Link>
           </DropdownMenuItem>
 

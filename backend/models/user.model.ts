@@ -4,7 +4,10 @@ export interface IUser {
   _id: ObjectId;
   name: string;
   username: string;
+  bio: string;
   email: string;
+  followers: ObjectId[],
+  following: ObjectId[],
   password: string;
   profilePicture?: string;
   resetToken?: string | null;
@@ -22,9 +25,20 @@ const userSchema = new mongoose.Schema<IUser>(
       type: String,
       required: true,
     },
+    bio: {
+      type: String,
+    },  
     email: {
       type: String,
       required: true,
+    },
+    followers: {
+      type: [mongoose.Schema.Types.ObjectId],
+      default: []
+    },
+    following: {
+      type: [mongoose.Schema.Types.ObjectId],
+      default: []
     },
     password: {
       type: String,

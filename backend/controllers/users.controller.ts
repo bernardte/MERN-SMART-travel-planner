@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs";
 import type { UserLoginDTO, UserRegisterDTO } from "../types/DTO/user.dto";
 import generateTokensAndSetCookies from "../utils/auth/generate_tokens_and_set_cookies";
 import { env } from "../config/env";
+import mongoose from "mongoose";
+import CommunityTravelGuide from "../models/community.model";
 
 const registerAccount = async (
   req: Request<{}, {}, UserRegisterDTO>,
@@ -132,9 +134,100 @@ const getLoginUser = async (req: Request, res: Response) => {
   });
 };
 
+const followAndUnfollowUser = async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id; // current user
+  const targetUserId = req.params?.userId as string; // target user
+
+  if (!currentUserId || !targetUserId) {
+    throw new AppError(400, "User ID is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
+    throw new AppError(400, "Invalid userID");
+  }
+
+  if (currentUserId.toString() === targetUserId) {
+    throw new AppError(400, "You cannot follow yourself");
+  }
+
+  const currentUser = await User.findById(currentUserId);
+  const targetUser = await User.findById(targetUserId);
+
+  if (!currentUser || !targetUser) {
+    throw new AppError(404, "User not found");
+  }
+
+  const isFollowing = currentUser.following.some(
+    (id) => id.toString() === targetUserId,
+  );
+
+  if (isFollowing) {
+    // remove the target user from the following
+    currentUser.following = currentUser.following.filter(
+      (id) => id.toString() !== targetUserId,
+    );
+
+    // remove the followers of the current user
+    targetUser.followers = targetUser.followers.filter(
+      (id) => id.toString() !== currentUserId.toString(),
+    );
+
+    // save
+    await currentUser.save();
+    await targetUser.save();
+
+    successApiResponse(res, 200, "User unfollowed successfully", {
+      isFollowing: isFollowing,
+      followersCount: targetUser.followers.length,
+    });
+    return;
+  }
+  // current user add target user to the following
+  currentUser.following.push(targetUser._id);
+  // target user add current user to the followers
+  targetUser.followers.push(currentUser._id);
+
+  await currentUser.save();
+  await targetUser.save();
+
+  successApiResponse(res, 200, "User followed successfully", {
+    isFollowing: !isFollowing,
+    followersCount: targetUser.followers.length,
+  });
+};
+
+const getUserProfile = async (req: Request, res: Response) => {
+  const { username } = req.params;
+
+  if(!username) throw new AppError(400, "Invalid username");
+
+  const user = await User.findOne({
+    username,
+  }).select("-password -__v -resetToken -resetTokenExpiration");
+
+  if(!user) throw new AppError(404, "User not found");
+
+  successApiResponse(res, 200, "", user);
+}
+
+const getUserPublishTravelGuide = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  if(!userId) throw new AppError(400, "Invalid userID");
+
+  const travelGuide = await CommunityTravelGuide.find({ authorId: userId });
+
+  if(!travelGuide) throw new AppError(404, "Travel guide not found");
+
+  successApiResponse(res, 200, "travel guide found", travelGuide);
+}
+
 export default {
   registerAccount,
   loginAccount,
   logoutAccount,
   getLoginUser,
+  followAndUnfollowUser,
+  getUserProfile,
+  getUserPublishTravelGuide,
 };

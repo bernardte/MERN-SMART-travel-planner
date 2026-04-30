@@ -12,6 +12,7 @@ import { errorHandlingMiddleware } from "./middleware/error_handling.middleware"
 import tripRoute from "./routes/trip.route";
 import tripPlanRoute from "./routes/tripPlan.route";
 import communityTravelGuideRoute from "./routes/communityTravelGuide.route";
+import favouriteRoute from "./routes/favourite.route";
 
 connectDB();
 const app = express();
@@ -47,6 +48,7 @@ app.use("/api/users", userRouter);
 app.use("/api/trips", tripRoute);
 app.use("/api/trips-plan", tripPlanRoute);
 app.use("/api/community", communityTravelGuideRoute);
+app.use("/api/favourites", favouriteRoute);
 
 //! Error handling middleware should be the last middleware for getting all the controller errors.
 app.use(errorHandlingMiddleware);

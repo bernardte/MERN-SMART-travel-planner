@@ -34,6 +34,11 @@ route.post(
   protectRoute,
   asyncHandler(communityTravelGuideController.likeAndUnlikePost),
 );
+route.post(
+  "/saved/post/:postId",
+  protectRoute,
+  asyncHandler(communityTravelGuideController.savedPost),
+);
 route.delete(
   "/delete-own-post/:postId",
   protectRoute,

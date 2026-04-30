@@ -1,57 +1,73 @@
-import { Route, Routes, Navigate } from "react-router-dom";
-import { Bounce, ToastContainer } from "react-toastify";
-import { lazy, Suspense } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Suspense } from "react";
 import { LoadingState } from "./layouts/components/loading/LoadingState";
 import MainLayout from "./layouts/MainLayout";
-import DashboardPage from "./pages/dashboard/DashboardPage";
-import HistoryPage from "./pages/history/HistoryPage";
-import LandingPage from "./pages/landing/LandingPage";
-import ProfilePage from "./pages/profile/ProfilePage";
 import { ProtectRoute } from "./lib/helpers/protectRoute";
-import PlanNewTripPage from "./pages/planNewTrip/planNewTripPage";
-import ViewTripPage from "./pages/planNewTrip/viewTripPage";
-import EditTripPage from "./pages/planNewTrip/editTripPage";
-import PostPage from "./pages/post/PostPage";
-import TravelCommunityGuidesPage from "./pages/community/CommunityPage";
-import TravelGuideFeed from "./pages/travelGuideFeed/TravelGuideFeed";
-import CreatePostPage from "./pages/tripPlan/TripPlanPage";
-const AuthenticationPage = lazy(
-  () => import("./pages/authentication/AuthenticationPage"),
-);
+//public
+import {
+  LandingPage,
+  AuthenticationPage,
+  TravelCommunityGuidesPage,
+} from "@/routes/publicPages";
+
+// private
+import {
+  DashboardPage,
+  ProfilePage,
+  PostPage,
+  SavedPostPage,
+} from "@/routes/privatePages";
+
+// heavy
+import {
+  PlanNewTripPage,
+  ViewTripPage,
+  EditTripPage,
+  TripPlan,
+  TravelGuideFeed,
+} from "@/routes/tripPages";
+import NotFoundPage from "./pages/notFound/NotFoundPage";
+import { Bounce, ToastContainer } from "react-toastify";
 function App() {
   return (
     <>
       <Suspense fallback={<LoadingState />}>
         <Routes>
-          {/* Public */}
+          {/* ================= Public ================= */}
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/auth" element={<AuthenticationPage />} />
 
-          <Route element={<ProtectRoute />}>
-            <Route path="/plan" element={<PlanNewTripPage />} />
-            <Route path="/trips/:id" element={<ViewTripPage />} />
-            <Route path="/trips/:id/edit" element={<EditTripPage />} />
-          </Route>
-
-          {/* Private */}
+          {/* ================= Main Layout ================= */}
           <Route element={<MainLayout />}>
             <Route path="/home" element={<LandingPage />} />
             <Route
               path="/community-guide"
               element={<TravelCommunityGuidesPage />}
             />
+
+            {/* ========== Protected ========== */}
             <Route element={<ProtectRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/history" element={<HistoryPage />} />
+              <Route
+                path="/profile/:targetUsername"
+                element={<ProfilePage />}
+              />
+              <Route path="/favourite-post" element={<SavedPostPage />} />
               <Route path="/post" element={<PostPage />} />
               <Route path="/feed-post/:id" element={<TravelGuideFeed />} />
               <Route
                 path="/create-travel-guide/:tripId"
-                element={<CreatePostPage />}
+                element={<TripPlan />}
               />
+
+              <Route path="/plan" element={<PlanNewTripPage />} />
+              <Route path="/trips/:id" element={<ViewTripPage />} />
+              <Route path="/trips/:id/edit" element={<EditTripPage />} />
             </Route>
           </Route>
+
+          {/* ================= 404 ================= */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
 

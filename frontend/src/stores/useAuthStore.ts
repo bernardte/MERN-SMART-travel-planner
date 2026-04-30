@@ -22,6 +22,7 @@ const useAuthStore = create<authStore>()((set) => ({
     set({
       user: null,
       accessToken: null,
+      refreshToken: null,
     });
   },
   setAccessToken: (accessToken: string) => {
