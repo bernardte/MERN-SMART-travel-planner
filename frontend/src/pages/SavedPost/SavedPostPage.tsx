@@ -164,7 +164,7 @@ const SavedPostsPage = () => {
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-cyan-100/30 to-blue-100/30 blur-3xl" />
             </div>
-            <div className="mx-auto mb-8 flex h-40 w-40 items-center justify-center rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 shadow-2xl">
+            <div className="animate-pulse mx-auto mb-8 flex h-40 w-40 items-center justify-center rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 shadow-2xl">
               <Bookmark className="h-16 w-16 text-cyan-600" strokeWidth={1.5} />
             </div>
             <h3 className="mb-3 text-3xl font-bold text-slate-900">

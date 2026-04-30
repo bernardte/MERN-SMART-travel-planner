@@ -20,7 +20,7 @@ const getAllFavourite = async (req: Request, res: Response) => {
   const favourites = await CommunityTravelGuide.find({
     //@ts-ignore
     postSavedByUser: userId,
-  }).populate<{ authorId: PopulatedAuthor }>("authorId", "_id name username");
+  }).populate<{ authorId: PopulatedAuthor }>("authorId", "_id name username").sort({ createdAt: -1 });
 
   const data = favourites.map((post) => {
     const isLiked = userId

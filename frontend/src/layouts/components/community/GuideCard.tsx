@@ -14,7 +14,7 @@ import {
   MapPin,
   TrendingUp,
 } from "lucide-react";
-
+const preloadProfile = () => import("@/pages/profile/ProfilePage");
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,6 +41,7 @@ import useToast from "@/hooks/useToast";
 import type { TravelGuide } from "@/types/interface.type";
 import useAuthStore from "@/stores/useAuthStore";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 const GuideCard: React.FC<{
   guide: TravelGuide;
@@ -195,17 +196,19 @@ const GuideCard: React.FC<{
             {/* Author & Location */}
             <div className="mb-3 flex items-start justify-between">
               <div className="flex items-center gap-2.5">
-                <Avatar className="h-8 w-8 ring-2 ring-cyan-500/20">
-                  <AvatarImage
-                    src={
-                      guide.author?.profilePicture ??
-                      "https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
-                    }
-                  />
-                  <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
-                    {guide.author?.name?.[0] ?? "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <Link to={`/profile/${guide.author.username}`} onMouseEnter={preloadProfile}>
+                  <Avatar className="h-8 w-8 ring-2 ring-cyan-500/20">
+                    <AvatarImage
+                      src={
+                        guide.author?.profilePicture ??
+                        "https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
+                      }
+                    />
+                    <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
+                      {guide.author?.name?.[0] ?? "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-semibold text-gray-900">
@@ -217,7 +220,7 @@ const GuideCard: React.FC<{
                     @{guide.author?.username}
                   </span>
                 </div>
-                <Button variant={"default"}>Follow</Button>
+                {user?._id && <Button variant={"default"}>Follow</Button>}
               </div>
               <Badge
                 variant="outline"

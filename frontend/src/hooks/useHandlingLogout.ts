@@ -4,29 +4,28 @@ import useAuthStore from "@/stores/useAuthStore";
 import { useState } from "react";
 import { logoutApi } from "@/api/auth.api";
 
-
 const useHandleLogout = () => {
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const logout = useAuthStore((state) => state.logout);
-    const { showToast } = useToast();
-    const navigate = useNavigate();
-    
-    const handleLogout = async () => {
-        setIsLoading(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { showToast } = useToast();
+  const navigate = useNavigate();
 
-        try {
-            await logoutApi();
-            showToast("success", "Logout successfully!");
-            logout();
-            navigate("/auth?mode=login");
-        } catch (error: any) {
-            showToast("error", `${error?.response?.data?.error}`);
-        }finally{
-            setIsLoading(false);
-        }
+  const handleLogout = async () => {
+    setIsLoading(true);
+
+    try {
+      await logoutApi();
+      showToast("success", "Logout successfully!");
+      const authStore = useAuthStore.getState();
+      authStore.logout();
+      navigate("/auth?mode=login");
+    } catch (error: any) {
+      showToast("error", `${error?.response?.data?.error}`);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    return { handleLogout, isLoading };
-}
+  return { handleLogout, isLoading };
+};
 
 export default useHandleLogout;
