@@ -97,6 +97,7 @@ export interface TravelGuide {
   likes: number;
   postLikedByUser: string[]; // 🔥 length of backend likes[]
   saves: number;
+  views: number;
   shares: number;
   isLiked?: boolean;
   isSaved?: boolean;

@@ -31,7 +31,7 @@ import useToast from "@/hooks/useToast";
 import { motion, AnimatePresence } from "framer-motion";
 import PostModal from "@/layouts/components/community/PostModal";
 import useAuthStore from "@/stores/useAuthStore";
-import { likedAndUnlikedPostApi } from "@/api/travel_guide.api";
+import { likedAndUnlikedPostApi, savedPost } from "@/api/travel_guide.api";
 
 const TravelCommunityGuidesPage: React.FC = () => {
   const [guides, setGuides] = useState<TravelGuide[]>([]);
@@ -72,7 +72,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
     }
   }, [publicPost]);
   const uniqueCountries = [
-    //? filter(Boolean): remove falsy value 
+    //? filter(Boolean): remove falsy value
     ...new Set(guides.map((g) => g.country).filter(Boolean)),
   ];
   const countries = ["all", ...uniqueCountries.sort()];
@@ -104,6 +104,10 @@ const TravelCommunityGuidesPage: React.FC = () => {
     });
 
   const handleLike = async (id: string) => {
+    if (!user) {
+      showToast("info", "Please login to like post");
+      return;
+    }
     try {
       const data = await likedAndUnlikedPostApi(id);
 
@@ -119,22 +123,33 @@ const TravelCommunityGuidesPage: React.FC = () => {
         ),
       );
     } catch {
-      showToast("error", "Unexpected error occur");
+      showToast("error", "Unexpected error occurs");
     }
   };
 
-  const handleSave = (id: string) => {
-    setGuides(
-      guides.map((guide) =>
-        guide._id === id
-          ? {
-              ...guide,
-              saves: guide.isSaved ? guide.saves - 1 : guide.saves + 1,
-              isSaved: !guide.isSaved,
-            }
-          : guide,
-      ),
-    );
+  const handleSave = async (id: string) => {
+    if (!user) {
+      showToast("info", "Please login to save post");
+      return;
+    }
+
+    try {
+      const data = await savedPost(id);
+
+      setGuides((prev) =>
+        prev.map((guide) =>
+          guide._id === id
+            ? {
+                ...guide,
+                saves: data.saves,
+                isSaved: data.isSaved,
+              }
+            : guide,
+        ),
+      );
+    } catch (error) {
+      showToast("error", "Unexpected error occurs");
+    }
   };
 
   const handleShare = (id: string) => {
@@ -142,8 +157,10 @@ const TravelCommunityGuidesPage: React.FC = () => {
     navigator.clipboard.writeText(url);
   };
 
-  const handleDelete = (postId: string) => {
-    deleteOwnPost(postId);
+  const handleDelete = async (postId: string) => {
+    await deleteOwnPost(postId).then(() =>
+      showToast("success", "Your post has been successfully deleted"),
+    );
   };
 
   //! frontend store the specific guide before preparing pass to post modal

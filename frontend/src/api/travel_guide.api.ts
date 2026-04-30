@@ -69,3 +69,9 @@ export const likedAndUnlikedPostApi = async (postId: string) => {
 
   return response.data.data;
 }
+
+export const savedPost = async (postId: string) => {
+  const response = await axiosInstance.post(`/api/community/saved/post/${postId}`);
+
+  return response.data.data
+}

@@ -168,19 +168,21 @@ const fetchUserItinerary = async (
 };
 
 const getAllPublicPost = async (req: Request, res: Response) => {
-  
   const userId = req.user?._id;
   const allPublicPost = await CommunityTravelGuide.find({
     privacy: "public",
   })
     .populate("authorId", "username name email profilePicture")
-    .sort({ createdAt: -1 });
 
   //! normalize data
   const normalized = allPublicPost.map((post) => {
     const obj = post.toObject();
     const isLiked = userId
       ? obj.likes?.some((id: any) => id.toString() === userId.toString())
+      : false;
+
+    const isSaved = userId 
+      ? obj.postSavedByUser?.some((id: any) => id.toString() === userId.toString())
       : false;
 
     return {
@@ -194,6 +196,7 @@ const getAllPublicPost = async (req: Request, res: Response) => {
       likes: obj.likes?.length || 0,
       isLiked,
       saves: obj.postSavedByUser?.length || 0,
+      isSaved,
 
       // stats
       stats: {
@@ -268,10 +271,53 @@ const likeAndUnlikePost = async (req: Request, res: Response) => {
 
   await post.save();
 
-  successApiResponse(res, 200, `Success ${alreadyLiked ? "liked post" : "unliked post"}`, {
-    likes: post.likes.length,
-    isLiked: !alreadyLiked,
-  });
+  successApiResponse(
+    res,
+    200,
+    `Success ${alreadyLiked ? "liked post" : "unliked post"}`,
+    {
+      likes: post.likes.length,
+      isLiked: !alreadyLiked,
+    },
+  );
+};
+
+export const savedPost = async (req: Request, res: Response) => {
+  const { postId } = req.params;
+  const userId = req.user?._id;
+
+  if (!postId) {
+    throw new AppError(401, "Invalid post");
+  }
+
+  const post = await CommunityTravelGuide.findById(postId);
+  if (!post) {
+    throw new AppError(401, "Post not found");
+  }
+
+  //@ts-ignore
+  const isSaved = post.postSavedByUser.includes(userId);
+  if (isSaved) {
+    post.postSavedByUser = post.postSavedByUser.filter(
+      (id) => id.toString() !== userId?.toString(),
+    );
+  } else {
+    //@ts-ignore
+    post.postSavedByUser.push(userId);
+  }
+
+  await post.save();
+  successApiResponse(
+    res,
+    200,
+    `Success ${isSaved ? "unsaved post" : "saved post"}`,
+    {
+      saves: post.postSavedByUser.length,
+      isSaved: !isSaved,
+    },
+  );
+
+
 };
 
 export default {
@@ -281,4 +327,5 @@ export default {
   getAllPublicPost,
   deleteOwnPost,
   likeAndUnlikePost,
+  savedPost
 };

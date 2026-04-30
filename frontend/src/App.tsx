@@ -4,7 +4,7 @@ import { lazy, Suspense } from "react";
 import { LoadingState } from "./layouts/components/loading/LoadingState";
 import MainLayout from "./layouts/MainLayout";
 import DashboardPage from "./pages/dashboard/DashboardPage";
-import HistoryPage from "./pages/history/HistoryPage";
+import SavedPostPage from "./pages/SavedPost/SavedPostPage";
 import LandingPage from "./pages/landing/LandingPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import { ProtectRoute } from "./lib/helpers/protectRoute";
@@ -14,9 +14,9 @@ import EditTripPage from "./pages/planNewTrip/editTripPage";
 import PostPage from "./pages/post/PostPage";
 import TravelCommunityGuidesPage from "./pages/community/CommunityPage";
 import TravelGuideFeed from "./pages/travelGuideFeed/TravelGuideFeed";
-import CreatePostPage from "./pages/tripPlan/TripPlanPage";
+import TripPlan from "./pages/tripPlan/TripPlanPage";
 const AuthenticationPage = lazy(
-  () => import("./pages/authentication/AuthenticationPage"),
+  () => import("./pages/authentication/AuthenticationPage")
 );
 function App() {
   return (
@@ -43,12 +43,12 @@ function App() {
             <Route element={<ProtectRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/favourite-post" element={<SavedPostPage />} />
               <Route path="/post" element={<PostPage />} />
               <Route path="/feed-post/:id" element={<TravelGuideFeed />} />
               <Route
                 path="/create-travel-guide/:tripId"
-                element={<CreatePostPage />}
+                element={<TripPlan />}
               />
             </Route>
           </Route>

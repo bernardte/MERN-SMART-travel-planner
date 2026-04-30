@@ -1,7 +1,7 @@
 import { navigationItems } from "@/constants/landingPage";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ChevronDown, History, LogOut, Menu, UserCircle2 } from "lucide-react";
+import { BookMarked, ChevronDown, History, LogOut, Menu, UserCircle2 } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import useAuthStore from "@/stores/useAuthStore";
 import useHandleLogout from "@/hooks/useHandlingLogout";
@@ -128,9 +128,9 @@ const Navbar = () => {
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild className="rounded-xl px-3 py-2">
-            <Link to="/history" className="flex items-center gap-2">
-              <History className="h-4 w-4 text-violet-500" />
-              <span>History</span>
+            <Link to="/favourite-post" className="flex items-center gap-2">
+              <BookMarked className="h-4 w-4 text-violet-500" />
+              <span>Favourites</span>
             </Link>
           </DropdownMenuItem>
 
