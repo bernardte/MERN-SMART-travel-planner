@@ -94,7 +94,8 @@ export interface TravelGuide {
   imagePreviews?: string[];
   author: PostUserDetails; // 🔥 mapped from authorId
   tags: string[];
-  likes: number; // 🔥 length of backend likes[]
+  likes: number;
+  postLikedByUser: string[]; // 🔥 length of backend likes[]
   saves: number;
   shares: number;
   isLiked?: boolean;

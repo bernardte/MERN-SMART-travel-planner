@@ -31,6 +31,7 @@ import useToast from "@/hooks/useToast";
 import { motion, AnimatePresence } from "framer-motion";
 import PostModal from "@/layouts/components/community/PostModal";
 import useAuthStore from "@/stores/useAuthStore";
+import { likedAndUnlikedPostApi } from "@/api/travel_guide.api";
 
 const TravelCommunityGuidesPage: React.FC = () => {
   const [guides, setGuides] = useState<TravelGuide[]>([]);
@@ -60,7 +61,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
   const { showToast } = useToast();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedGuide, setSelectedGuide] = useState<TravelGuide | null>(null);
-  const user = useAuthStore(state => state.user);
+  const user = useAuthStore((state) => state.user);
   useEffect(() => {
     getAllPublicPost();
   }, [getAllPublicPost]);
@@ -70,18 +71,11 @@ const TravelCommunityGuidesPage: React.FC = () => {
       setGuides(publicPost);
     }
   }, [publicPost]);
-
-  const countries = [
-    "all",
-    "Japan",
-    "China",
-    "Korea",
-    "Thailand",
-    "France",
-    "Italy",
-    "Spain",
+  const uniqueCountries = [
+    //? filter(Boolean): remove falsy value 
+    ...new Set(guides.map((g) => g.country).filter(Boolean)),
   ];
-
+  const countries = ["all", ...uniqueCountries.sort()];
   const filteredGuides = guides
     .filter(
       (guide) =>
@@ -109,18 +103,24 @@ const TravelCommunityGuidesPage: React.FC = () => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  const handleLike = (id: string) => {
-    setGuides(
-      guides.map((guide) =>
-        guide._id === id
-          ? {
-              ...guide,
-              likes: guide.isLiked ? guide.likes - 1 : guide.likes + 1,
-              isLiked: !guide.isLiked,
-            }
-          : guide,
-      ),
-    );
+  const handleLike = async (id: string) => {
+    try {
+      const data = await likedAndUnlikedPostApi(id);
+
+      setGuides((prev) =>
+        prev.map((guide) =>
+          guide._id === id
+            ? {
+                ...guide,
+                likes: data.likes,
+                isLiked: data.isLiked,
+              }
+            : guide,
+        ),
+      );
+    } catch {
+      showToast("error", "Unexpected error occur");
+    }
   };
 
   const handleSave = (id: string) => {
@@ -155,10 +155,10 @@ const TravelCommunityGuidesPage: React.FC = () => {
 
   //! frontend UI update, when created a new post
   const handleGuideCreated = (res: TravelGuide) => {
-  const newGuide = res;
+    const newGuide = res;
 
-  setGuides((prev) => [newGuide, ...prev]);
-};
+    setGuides((prev) => [newGuide, ...prev]);
+  };
 
   useEffect(() => {
     if (publicPostError) {

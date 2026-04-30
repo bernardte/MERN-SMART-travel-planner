@@ -168,17 +168,20 @@ const fetchUserItinerary = async (
 };
 
 const getAllPublicPost = async (req: Request, res: Response) => {
+  
+  const userId = req.user?._id;
   const allPublicPost = await CommunityTravelGuide.find({
     privacy: "public",
   })
     .populate("authorId", "username name email profilePicture")
     .sort({ createdAt: -1 });
 
-  console.log(allPublicPost);
-
   //! normalize data
   const normalized = allPublicPost.map((post) => {
     const obj = post.toObject();
+    const isLiked = userId
+      ? obj.likes?.some((id: any) => id.toString() === userId.toString())
+      : false;
 
     return {
       ...obj,
@@ -189,6 +192,7 @@ const getAllPublicPost = async (req: Request, res: Response) => {
 
       //  numbers
       likes: obj.likes?.length || 0,
+      isLiked,
       saves: obj.postSavedByUser?.length || 0,
 
       // stats
@@ -245,37 +249,29 @@ const likeAndUnlikePost = async (req: Request, res: Response) => {
   const { postId } = req.params;
   const userId = req.user?._id;
 
-  if (!postId || Array.isArray(postId)) {
-    throw new AppError(400, "Invalid postId");
-  }
-  
+  if (!postId) throw new AppError(400, "Invalid postId");
   if (!userId) throw new AppError(401, "Unauthorized");
-  
+
   const post = await CommunityTravelGuide.findById(postId);
   if (!post) throw new AppError(404, "Post not found");
-  
-  const postObjectId = mongoDBObjectIDConverter(postId);
 
-  // @ts-ignore
-  const existing = await CommunityTravelGuide.findOne({
-    _id: postObjectId,
-    likes: userId,
-  });
+  const alreadyLiked = post.likes.some(
+    (id) => id.toString() === userId.toString(),
+  );
 
-  if (existing) {
-    await CommunityTravelGuide.updateOne(
-      { _id: postId },
-      { $pull: { likes: userId } },
-    );
-    successApiResponse(res, 200, "Post unliked successfully");
+  if (alreadyLiked) {
+    post.likes = post.likes.filter((id) => id.toString() !== userId.toString());
   } else {
-    await CommunityTravelGuide.updateOne(
-      { _id: postId },
-      { $addToSet: { likes: userId } },
-    );
-    await post.save();
-    successApiResponse(res, 200, "Post liked successfully");
+    //@ts-ignore
+    post.likes.push(userId);
   }
+
+  await post.save();
+
+  successApiResponse(res, 200, `Success ${alreadyLiked ? "liked post" : "unliked post"}`, {
+    likes: post.likes.length,
+    isLiked: !alreadyLiked,
+  });
 };
 
 export default {

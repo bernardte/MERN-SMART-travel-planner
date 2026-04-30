@@ -54,15 +54,14 @@ const GuideCard: React.FC<{
   isLoading?: boolean;
 }> = ({ guide, onLike, onSave, onShare, onDelete, onEdit, isLoading }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isLiked, setIsLiked] = useState(guide.isLiked || false);
-  const [likesCount, setLikesCount] = useState(guide.likes);
+  const user = useAuthStore((state) => state.user);
   const [isSaved, setIsSaved] = useState(guide.isSaved || false);
   const { showToast } = useToast();
-  const user = useAuthStore((state) => state.user);
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
+    if (!user) {
+      showToast("info", "Please login to like posts");
+    }
     onLike(guide?._id);
   };
 
@@ -214,9 +213,9 @@ const GuideCard: React.FC<{
                 onClick={handleLike}
               >
                 <Heart
-                  className={`h-4 w-4 transition-all ${isLiked ? "fill-red-500 text-red-500" : ""}`}
+                  className={`h-4 w-4 transition-all ${guide.isLiked ? "fill-red-500 text-red-500" : ""}`}
                 />
-                <span>{likesCount}</span>
+                <span>{guide.likes}</span>
               </Button>
               <Button
                 variant="ghost"
