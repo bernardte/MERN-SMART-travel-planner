@@ -63,3 +63,9 @@ export const getAllPublicPostApi = async () => {
 export const deleteOwnPostApi = async (postId: string) => {
   await axiosInstance.delete(`/api/community/delete-own-post/${postId}`);
 }
+
+export const likedAndUnlikedPostApi = async (postId: string) => {
+  const response = await axiosInstance.post(`/api/community/liked-and-unliked/post/${postId}`);
+
+  return response.data.data;
+}
