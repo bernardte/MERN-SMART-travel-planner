@@ -522,7 +522,7 @@ const ProfilePage = () => {
 
                 <div className="group flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-50 to-violet-100">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-50 to-yellow-100">
                       <UserCheck className="h-4 w-4 text-amber-600" />
                     </div>
                     <span className="text-sm text-gray-600">Following</span>
