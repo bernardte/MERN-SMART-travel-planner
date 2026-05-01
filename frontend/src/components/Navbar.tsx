@@ -92,7 +92,7 @@ const Navbar = () => {
             }`}
           >
             <div className="from-primary flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-300 to-cyan-500 text-xs font-semibold text-white shadow-md">
-              {user?.profilePicture ? user?.profilePicture : avatarInitial}
+              {user?.profilePicture ? <img src={user?.profilePicture} className="object-cover rounded-full h-8 w-8" /> : avatarInitial}
             </div>
             <div className="hidden max-w-24 text-left sm:block">
               <p className="truncate text-sm leading-tight">{displayName}</p>

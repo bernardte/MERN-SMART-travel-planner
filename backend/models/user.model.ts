@@ -10,6 +10,7 @@ export interface IUser {
   following: ObjectId[],
   password: string;
   profilePicture?: string;
+  profilePictureCloudinaryPublicId?: string;
   resetToken?: string | null;
   resetTokenExpiration?: Date | null;
 }
@@ -27,33 +28,40 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     bio: {
       type: String,
-    },  
+    },
     email: {
       type: String,
       required: true,
     },
     followers: {
       type: [mongoose.Schema.Types.ObjectId],
-      default: []
+      default: [],
     },
     following: {
       type: [mongoose.Schema.Types.ObjectId],
-      default: []
+      default: [],
     },
     password: {
       type: String,
       required: true,
+      select: false,
     },
     profilePicture: {
       type: String,
     },
+    profilePictureCloudinaryPublicId: {
+      type: String,
+      select: false
+    },
     resetToken: {
       type: String,
       default: null,
+      select: false,
     },
     resetTokenExpiration: {
       type: Date,
       default: null,
+      select: false,
     },
   },
   { timestamps: true },

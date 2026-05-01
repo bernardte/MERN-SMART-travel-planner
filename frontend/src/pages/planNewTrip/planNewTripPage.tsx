@@ -600,7 +600,7 @@ const PlanNewTripPage = () => {
               icon={makeIcon(idx)}
             >
               <Popup>
-                <div className="min-w-[140px]">
+                <div className="min-w-[140px] -z-10">
                   <p className="font-semibold text-gray-800">{loc.name}</p>
                   {loc.note && (
                     <p className="mt-1 text-xs text-gray-500">{loc.note}</p>

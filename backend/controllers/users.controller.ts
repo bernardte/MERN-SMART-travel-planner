@@ -3,11 +3,17 @@ import User from "../models/user.model";
 import { successApiResponse } from "../utils/succes_api_response";
 import { AppError } from "../utils/error_api_response";
 import bcrypt from "bcryptjs";
-import type { UserLoginDTO, UserRegisterDTO } from "../types/DTO/user.dto";
+import type {
+  updateData,
+  UserLoginDTO,
+  UserRegisterDTO,
+} from "../types/DTO/user.dto";
 import generateTokensAndSetCookies from "../utils/auth/generate_tokens_and_set_cookies";
 import { env } from "../config/env";
 import mongoose from "mongoose";
 import CommunityTravelGuide from "../models/community.model";
+import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary";
+import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary";
 
 const registerAccount = async (
   req: Request<{}, {}, UserRegisterDTO>,
@@ -76,7 +82,7 @@ const loginAccount = async (
 
   const user = await User.findOne({
     email,
-  });
+  }).select("+password");
 
   if (!user) {
     throw new AppError(401, "Invalid email or password.");
@@ -134,9 +140,12 @@ const getLoginUser = async (req: Request, res: Response) => {
   });
 };
 
-const followAndUnfollowUser = async (req: Request, res: Response) => {
-  const currentUserId = req.user?._id; // current user
-  const targetUserId = req.params?.userId as string; // target user
+const followAndUnfollowUser = async (
+  req: Request<{ userId: string }>,
+  res: Response,
+) => {
+  const currentUserId = req.user?._id;
+  const targetUserId = req.params.userId;
 
   if (!currentUserId || !targetUserId) {
     throw new AppError(400, "User ID is required");
@@ -161,37 +170,30 @@ const followAndUnfollowUser = async (req: Request, res: Response) => {
     (id) => id.toString() === targetUserId,
   );
 
+  let newIsFollowing: boolean;
+
   if (isFollowing) {
-    // remove the target user from the following
     currentUser.following = currentUser.following.filter(
       (id) => id.toString() !== targetUserId,
     );
 
-    // remove the followers of the current user
     targetUser.followers = targetUser.followers.filter(
       (id) => id.toString() !== currentUserId.toString(),
     );
 
-    // save
-    await currentUser.save();
-    await targetUser.save();
+    newIsFollowing = false;
+  } else {
+    currentUser.following.push(targetUser._id);
+    targetUser.followers.push(currentUser._id);
 
-    successApiResponse(res, 200, "User unfollowed successfully", {
-      isFollowing: isFollowing,
-      followersCount: targetUser.followers.length,
-    });
-    return;
+    newIsFollowing = true;
   }
-  // current user add target user to the following
-  currentUser.following.push(targetUser._id);
-  // target user add current user to the followers
-  targetUser.followers.push(currentUser._id);
 
   await currentUser.save();
   await targetUser.save();
 
-  successApiResponse(res, 200, "User followed successfully", {
-    isFollowing: !isFollowing,
+  return successApiResponse(res, 200, "Success", {
+    isFollowing: newIsFollowing,
     followersCount: targetUser.followers.length,
   });
 };
@@ -199,35 +201,124 @@ const followAndUnfollowUser = async (req: Request, res: Response) => {
 const getUserProfile = async (req: Request, res: Response) => {
   const { username } = req.params;
 
-  if(!username) throw new AppError(400, "Invalid username");
+  if (!username) throw new AppError(400, "Invalid username");
 
   const user = await User.findOne({
     username,
   }).select("-password -__v -resetToken -resetTokenExpiration");
 
-  if(!user) throw new AppError(404, "User not found");
+  if (!user) throw new AppError(404, "User not found");
 
   successApiResponse(res, 200, "", user);
-}
+};
 
 const getUserPublishTravelGuide = async (req: Request, res: Response) => {
   const { userId } = req.params;
 
-  if(!userId) throw new AppError(400, "Invalid userID");
+  if (!userId) throw new AppError(400, "Invalid userID");
 
-  const travelGuide = await CommunityTravelGuide.find({ authorId: userId });
+  const travelGuide = await CommunityTravelGuide.find({
+    authorId: userId,
+    privacy: "public",
+  }).sort({ createdAt: -1 });
 
-  if(!travelGuide) throw new AppError(404, "Travel guide not found");
+  if (!travelGuide) throw new AppError(404, "Travel guide not found");
 
   successApiResponse(res, 200, "travel guide found", travelGuide);
-}
+};
+
+const updateUserProfile = async (
+  req: Request<{}, {}, updateData>,
+  res: Response,
+) => {
+  const user = req.user;
+
+  if (!user?._id) throw new AppError(400, "Invalid userID");
+
+  const allowedField: (keyof updateData)[] = ["bio", "username"];
+
+  const updates: Partial<updateData> = {};
+  allowedField.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  });
+
+  if (req.file && user.profilePictureCloudinaryPublicId) {
+    await deleteFromCloudinary(user.profilePictureCloudinaryPublicId);
+  }
+
+  // if frontend upload user
+  if (req.file) {
+    const { url, public_id } = await uploadToCloudinary(
+      req.file.buffer,
+      "travel_guide",
+    );
+    updates["profilePicture"] = url;
+    updates["profilePictureCloudinaryPublicId"] = public_id;
+  }
+
+  const updateUser = await User.findByIdAndUpdate(
+    user?._id,
+    { $set: updates },
+    { new: true, runValidators: true },
+  );
+
+  successApiResponse(res, 200, "updated successfully", updateUser);
+};
+
+const getUserProfileStats = async (req: Request, res: Response) => {
+  const username = req.params?.username;
+
+  if (!username) throw new AppError(400, "Invalid username");
+
+  const stats = await CommunityTravelGuide.aggregate([
+    //! join User collection
+    {
+      $lookup: {
+        from: "users", //* collection name(usually lowercase + plural)
+        localField: "authorId",
+        foreignField: "_id",
+        as: "author",
+      },
+    },
+    //! flatten array
+    {
+      $unwind: "$author",
+    },
+    {
+      $match: {
+        "author.username": username,
+        privacy: "public",
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalGuide: { $sum: 1 },
+        totalViews: { $sum: "$views" },
+        totalLikes: { $sum: { $size: "$likes" } }, // handle array
+      },
+    },
+  ]);
+
+  const result = {
+    totalGuides: stats[0]?.totalGuide || 0,
+    totalViews: stats[0]?.totalViews || 0,
+    totalLikes: stats[0]?.totalLikes || 0,
+  };
+
+  successApiResponse(res, 200, "User stats fetched", result);
+};
 
 export default {
+  updateUserProfile,
   registerAccount,
   loginAccount,
   logoutAccount,
-  getLoginUser,
   followAndUnfollowUser,
+  getLoginUser,
   getUserProfile,
   getUserPublishTravelGuide,
+  getUserProfileStats,
 };

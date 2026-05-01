@@ -17,10 +17,11 @@ import {
 import { loginApi } from "@/api/auth.api";
 import useToast from "@/hooks/useToast";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LoadingWave } from "@/components/ui/loading";
 import { Eye, EyeClosed } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";
+import useFollowStore from "@/stores/useFollowStore";
 
 const LoginForm = () => {
   const form = useForm<UserLoginSchemaType>({
@@ -37,7 +38,6 @@ const LoginForm = () => {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isVisible, setisVisible] = useState<boolean>(false);
-
   const onSubmit = async (values: UserLoginSchemaType) => {
     setIsLoading(true);
 
@@ -47,13 +47,22 @@ const LoginForm = () => {
       const loginUser = result?.data;
 
       if (loginUser) {
-        setUser({
-          email: loginUser.email,
-          username: loginUser.username,
-          name: loginUser.name ?? loginUser.username,
-          profilePicture: loginUser.profilePicture,
-        });
+        setUser(loginUser);
+
+        if (loginUser) {
+          setUser(loginUser);
+
+          //  把 following array 转 map
+          const map: Record<string, boolean> = {};
+
+          loginUser.following?.forEach((id: string) => {
+            map[id] = true;
+          });
+
+          useFollowStore.getState().setFollowingMap(map);
+        }
       }
+
 
       if (loginUser?.token) {
         setAccessToken(loginUser.token);

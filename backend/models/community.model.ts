@@ -44,6 +44,7 @@ const CommunityTravelGuideSchema = new mongoose.Schema<CommunityTravelGuide>(
     thumbnailImagePublicId: {
       type: String,
       required: true,
+      select: false
     },
     tags: {
       type: [String],

@@ -8,6 +8,7 @@ type PopulatedAuthor = {
   _id: mongoose.Types.ObjectId;
   name: string;
   username: string;
+  profilePicture: string;
 };
 
 const getAllFavourite = async (req: Request, res: Response) => {
@@ -20,7 +21,12 @@ const getAllFavourite = async (req: Request, res: Response) => {
   const favourites = await CommunityTravelGuide.find({
     //@ts-ignore
     postSavedByUser: userId,
-  }).populate<{ authorId: PopulatedAuthor }>("authorId", "_id name username").sort({ createdAt: -1 });
+  })
+    .populate<{ authorId: PopulatedAuthor }>(
+      "authorId",
+      "_id name username profilePicture",
+    )
+    .sort({ createdAt: -1 });
 
   const data = favourites.map((post) => {
     const isLiked = userId
@@ -51,9 +57,10 @@ const getAllFavourite = async (req: Request, res: Response) => {
 
       author: post.authorId
         ? {
-            id: post.authorId._id,
+            _id: post.authorId._id,
             name: post.authorId.name,
             username: post.authorId.username,
+            profilePicture: post.authorId.profilePicture,
           }
         : null,
       createdAt: post.createdAt,
