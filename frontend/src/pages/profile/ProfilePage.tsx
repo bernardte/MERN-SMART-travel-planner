@@ -16,34 +16,42 @@ import {
   Lock,
   Heart,
   Eye,
-  Filter,
   Grid3x3,
   List,
   Share2,
-  Link2,
   Sparkles,
   TrendingUp,
   Loader2,
+  Users,
+  BookOpen,
+  BarChart3,
 } from "lucide-react";
 import useToast from "@/hooks/useToast";
 import {
   getUserPublishTravelGuideApi,
   getUserProfileApi,
-  // updateUserProfileApi,
-  // uploadProfilePictureApi,
+  updateUserProfileApi,
+  userProfileStatsApi,
 } from "@/api/user.api";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import useFollowUnfollow from "@/hooks/useFollowAndUnfollow";
 import type { TravelGuide, User } from "@/types/interface.type";
 import { useParams } from "react-router-dom";
+import { useShallow } from "zustand/shallow";
+import useFollowStore from "@/stores/useFollowStore";
 
 const ProfilePage = () => {
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const currentUser = useAuthStore((state) => state.user);
+  const currentUser = useAuthStore(
+    useShallow((state) => ({
+      user: state.user,
+      setUser: state.setUser,
+    })),
+  );
+
   const { targetUsername } = useParams();
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [profilePicture, setProfilePicture] = useState("");
@@ -58,9 +66,23 @@ const ProfilePage = () => {
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeTab, setActiveTab] = useState<"guides" | "saved">("guides");
+  const [totalStats, setTotalStats] = useState<Record<string, number>>({
+    totalGuides: 0,
+    totalViews: 0,
+    totalLikes: 0,
+  });
+  const user = useAuthStore((state) => state.user);
+  const { toggleFollow, followingMap, loadingMap } = useFollowStore(
+    useShallow((state) => ({
+      toggleFollow: state.toggleFollow,
+      followingMap: state.followingMap,
+      loadingMap: state.loadingMap,
+    })),
+  );
 
-  const { following, loading, handleFollowUnfollow, followerCount } =
-    useFollowUnfollow(profileUser);
+  const isFollowing = profileUser ? followingMap[profileUser._id] : false;
+
+  const isLoadingFollow = profileUser ? loadingMap[profileUser._id] : false;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -68,14 +90,27 @@ const ProfilePage = () => {
         const data = await getUserProfileApi(targetUsername!);
         setProfileUser(data);
         setProfilePicture(data.profilePicture);
-        setEditedName(data.name);
+        setEditedName(data.username);
         setEditedBio(data.bio);
       } catch (err) {
         showToast("error", "Failed to load user");
       }
     };
 
-    if (targetUsername) fetchUser();
+    const fetchUserStats = async () => {
+      try {
+        const data = await userProfileStatsApi(targetUsername!);
+        setTotalStats({
+          totalGuides: data.totalGuides,
+          totalViews: data.totalViews,
+          totalLikes: data.totalLikes,
+        });
+      } catch (error) {
+        showToast("error", "Failed to load user stats");
+      }
+    };
+
+    if (targetUsername) Promise.all([fetchUser(), fetchUserStats()]);
   }, [targetUsername]);
 
   useEffect(() => {
@@ -96,78 +131,88 @@ const ProfilePage = () => {
     fetchGuides();
   }, [profileUser]);
 
-  // const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0];
-  //   if (!file) return;
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  //   // Check if user is viewing their own profile
-  //   if (!isOwnProfile) {
-  //     showToast("error", "You cannot edit another user's profile");
-  //     return;
-  //   }
+    if (!isOwnProfile) {
+      showToast("error", "You cannot edit another user's profile");
+      return;
+    }
 
-  //   // Validate file type
-  //   if (!file.type.startsWith("image/")) {
-  //     showToast("error", "Please upload an image file");
-  //     return;
-  //   }
+    if (!file.type.startsWith("image/")) {
+      showToast("error", "Please upload an image file");
+      return;
+    }
 
-  //   // Validate file size (max 5MB)
-  //   if (file.size > 5 * 1024 * 1024) {
-  //     showToast("error", "Image size should be less than 5MB");
-  //     return;
-  //   }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("error", "Image size should be less than 5MB");
+      return;
+    }
 
-  //   setIsUploadingAvatar(true);
-  //   const formData = new FormData();
-  //   formData.append("profilePicture", file);
+    setIsUploadingAvatar(true);
+    if (!currentUser.user) return;
 
-  //   try {
-  //     const response = await uploadProfilePictureApi(formData);
-  //     setProfilePicture(response.data.url);
-  //     // Update the profileUser state as well
-  //     setProfileUser((prev) =>
-  //       prev ? { ...prev, profilePicture: response.data.url } : null,
-  //     );
-  //     showToast("success", "Profile picture updated successfully!");
-  //   } catch (error) {
-  //     console.error("Error uploading avatar:", error);
-  //     showToast("error", "Failed to update profile picture");
-  //   } finally {
-  //     setIsUploadingAvatar(false);
-  //     // Reset file input
-  //     if (fileInputRef.current) fileInputRef.current.value = "";
-  //   }
-  // };
+    try {
+      const data = await updateUserProfileApi({ profilePicture: file });
+      setProfilePicture(data.profilePicture);
+      setProfileUser((prev) =>
+        prev ? { ...prev, profilePicture: data.profilePicture } : null,
+      );
+      currentUser.setUser({
+        ...currentUser.user,
+        profilePicture: data.profilePicture,
+      });
+      showToast("success", "Profile picture updated successfully!");
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      showToast("error", "Failed to update profile picture");
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
-  // const handleSaveName = async () => {
-  //   if (!editedName.trim()) {
-  //     showToast("error", "Name cannot be empty");
-  //     return;
-  //   }
+  const handleSaveName = async () => {
+    if (!editedName.trim()) {
+      showToast("error", "Name cannot be empty");
+      return;
+    }
 
-  //   try {
-  //     await updateUserProfileApi({ name: editedName });
-  //     setProfileUser((prev) => (prev ? { ...prev, name: editedName } : null));
-  //     showToast("success", "Name updated successfully!");
-  //     setIsEditingName(false);
-  //   } catch (error) {
-  //     console.error("Error updating name:", error);
-  //     showToast("error", "Failed to update name");
-  //   }
-  // };
+    if (!currentUser.user) return;
 
-  // const handleSaveBio = async () => {
-  //   try {
-  //     await updateUserProfileApi({ bio: editedBio });
-  //     setProfileUser((prev) => (prev ? { ...prev, bio: editedBio } : null));
-  //     showToast("success", "Bio updated successfully!");
-  //     setIsEditingBio(false);
-  //   } catch (error) {
-  //     console.error("Error updating bio:", error);
-  //     showToast("error", "Failed to update bio");
-  //   }
-  // };
+    try {
+      await updateUserProfileApi({ username: editedName });
+      setProfileUser((prev) => (prev ? { ...prev, name: editedName } : null));
+      currentUser.setUser({
+        ...currentUser.user,
+        username: editedName,
+      });
+      showToast("success", "Name updated successfully!");
+      setIsEditingName(false);
+    } catch (error) {
+      console.error("Error updating name:", error);
+      showToast("error", "Failed to update name");
+    }
+  };
+
+  const handleSaveBio = async () => {
+    if (!currentUser.user) return;
+
+    try {
+      await updateUserProfileApi({ bio: editedBio });
+      setProfileUser((prev) => (prev ? { ...prev, bio: editedBio } : null));
+      currentUser.setUser({
+        ...currentUser.user,
+        bio: editedBio,
+      });
+      showToast("success", "Bio updated successfully!");
+      setIsEditingBio(false);
+    } catch (error) {
+      console.error("Error updating bio:", error);
+      showToast("error", "Failed to update bio");
+    }
+  };
 
   const formatNumber = (num: number) => {
     if (!num) return 0;
@@ -175,12 +220,6 @@ const ProfilePage = () => {
     if (num >= 1000) return (num / 1000).toFixed(1) + "K";
     return num;
   };
-
-  // const totalStats = {
-  //   totalGuides: userGuides.length,
-  //   totalLikes: userGuides.reduce((sum, g) => sum + (g.likes?.length || 0), 0),
-  //   totalViews: userGuides.reduce((sum, g) => sum + (g.views || 0), 0),
-  // };
 
   if (!profileUser) {
     return (
@@ -198,16 +237,19 @@ const ProfilePage = () => {
   const email = profileUser.email;
   const bio = profileUser.bio || "No bio yet";
   const joinDate = new Date(profileUser.createdAt);
-  const isOwnProfile = currentUser?._id === profileUser._id;
+  const isOwnProfile = currentUser.user?._id === profileUser._id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-cyan-50/30">
+    <div className="relative min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-50/40">
+      {/* Subtle background pattern (travel dots) */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#0e7490_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.03]"></div>
+
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+      <div className="sticky top-0 z-20 border-b border-gray-200/60 bg-white/70 shadow-sm backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
           <div className="flex items-center gap-4 overflow-x-auto py-3">
             <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8 ring-2 ring-white">
+              <Avatar className="h-8 w-8 shadow-md ring-2 ring-white">
                 <AvatarImage src={profilePicture} />
                 <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
                   {displayName?.charAt(0).toUpperCase()}
@@ -220,7 +262,7 @@ const ProfilePage = () => {
                 onClick={() => setActiveTab("guides")}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
                   activeTab === "guides"
-                    ? "bg-cyan-50 text-cyan-700"
+                    ? "bg-cyan-50 text-cyan-700 shadow-sm"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -230,7 +272,7 @@ const ProfilePage = () => {
                 onClick={() => setActiveTab("saved")}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
                   activeTab === "saved"
-                    ? "bg-cyan-50 text-cyan-700"
+                    ? "bg-cyan-50 text-cyan-700 shadow-sm"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -241,28 +283,27 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[320px,1fr]">
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Profile Card */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-gray-100 bg-white/90 p-6 shadow-xl shadow-cyan-500/5 backdrop-blur-sm transition-all hover:shadow-cyan-500/10">
               <div className="relative mb-4">
                 <div className="group relative inline-block">
-                  <Avatar className="h-24 w-24 shadow-lg ring-4 ring-white">
+                  <Avatar className="h-24 w-24 shadow-lg ring-4 ring-white/80 ring-offset-2 ring-offset-transparent transition-all duration-300 group-hover:ring-cyan-200">
                     <AvatarImage src={profilePicture} />
-                    <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-3xl text-white">
+                    <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-600 text-3xl text-white">
                       {displayName?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
 
-                  {/* Camera button for avatar upload - only visible on own profile */}
                   {isOwnProfile && (
                     <>
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploadingAvatar}
-                        className="absolute right-0 bottom-0 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 p-2 text-white shadow-lg transition-all duration-300 hover:scale-110 disabled:opacity-50"
+                        className="absolute -right-1 -bottom-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 p-2 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-cyan-500/30 disabled:opacity-50"
                       >
                         {isUploadingAvatar ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -275,7 +316,7 @@ const ProfilePage = () => {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        // onChange={handleAvatarUpload}
+                        onChange={handleAvatarUpload}
                       />
                     </>
                   )}
@@ -289,18 +330,18 @@ const ProfilePage = () => {
                       type="text"
                       value={editedName}
                       onChange={(e) => setEditedName(e.target.value)}
-                      className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-lg font-semibold focus:border-cyan-500 focus:outline-none"
+                      className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-lg font-semibold focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 focus:outline-none"
                       autoFocus
                     />
-                    {/* <button
+                    <button
                       onClick={handleSaveName}
-                      className="rounded-lg bg-green-500 p-1.5 text-white hover:bg-green-600"
+                      className="rounded-lg bg-green-500 p-1.5 text-white transition-colors hover:bg-green-600"
                     >
                       <Check className="h-4 w-4" />
-                    </button> */}
+                    </button>
                     <button
                       onClick={() => setIsEditingName(false)}
-                      className="rounded-lg bg-red-500 p-1.5 text-white hover:bg-red-600"
+                      className="rounded-lg bg-red-500 p-1.5 text-white transition-colors hover:bg-red-600"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -332,23 +373,23 @@ const ProfilePage = () => {
                     value={editedBio}
                     onChange={(e) => setEditedBio(e.target.value)}
                     rows={3}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 focus:outline-none"
                     placeholder="Write your bio..."
                   />
-                  {/* <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2">
                     <button
                       onClick={handleSaveBio}
-                      className="rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-1.5 text-xs font-medium text-white"
+                      className="rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-1.5 text-xs font-medium text-white shadow-md transition-all hover:shadow-lg"
                     >
                       Save
                     </button>
                     <button
                       onClick={() => setIsEditingBio(false)}
-                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-all hover:bg-gray-50"
                     >
                       Cancel
                     </button>
-                  </div> */}
+                  </div>
                 </div>
               ) : (
                 <div className="group relative mb-4">
@@ -375,45 +416,27 @@ const ProfilePage = () => {
                     })}
                   </span>
                 </div>
-                {/* {profileUser.location && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <MapPin className="h-4 w-4" />
-                    <span>{profileUser.location}</span>
-                  </div>
-                )}
-                {profileUser.website && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Link2 className="h-4 w-4" />
-                    <a
-                      href={profileUser.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cyan-600 hover:underline"
-                    >
-                      {profileUser.website}
-                    </a>
-                  </div>
-                )} */}
                 <div className="flex items-center gap-2 text-gray-600">
                   <Mail className="h-4 w-4" />
                   <span className="text-sm">{email}</span>
                 </div>
               </div>
 
-              {/* Follow Button - only show for other users */}
               {!isOwnProfile && (
                 <button
-                  onClick={handleFollowUnfollow}
-                  disabled={loading}
+                  onClick={() =>
+                    profileUser?._id && toggleFollow(profileUser?._id)
+                  }
+                  disabled={isLoadingFollow}
                   className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-all ${
-                    following
+                    isFollowing
                       ? "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                      : "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:shadow-lg"
+                      : "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:shadow-lg hover:shadow-cyan-500/20"
                   }`}
                 >
-                  {loading ? (
+                  {isLoadingFollow ? (
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : following ? (
+                  ) : isFollowing ? (
                     <>
                       <UserCheck className="h-4 w-4" />
                       Following
@@ -429,33 +452,83 @@ const ProfilePage = () => {
             </div>
 
             {/* Stats Card */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-gray-900">
+            <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white/90 p-6 shadow-xl shadow-cyan-500/5 backdrop-blur-sm">
+              {/* Subtle decorative gradient */}
+              <div className="absolute top-0 right-0 h-32 w-32 rounded-bl-full bg-gradient-to-bl from-cyan-100/40 to-transparent" />
+
+              <h3 className="relative mb-5 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                <BarChart3 className="h-4 w-4 text-cyan-500" />
                 Statistics
               </h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Public Guides</span>
-                  <span className="font-semibold text-gray-900">
-                    {/* {totalStats.totalGuides} */}
+
+              <div className="relative space-y-4">
+                {/* Public Guides */}
+                <div className="group flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-100 to-blue-100">
+                      <BookOpen className="h-4 w-4 text-cyan-600" />
+                    </div>
+                    <span className="text-sm text-gray-600">Public Guides</span>
+                  </div>
+                  <span className="font-semibold text-gray-900 tabular-nums">
+                    {totalStats.totalGuides ?? 0}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Total Likes</span>
-                  <span className="font-semibold text-gray-900">
-                    {/* {formatNumber(totalStats.totalLikes)} */}
+
+                <div className="border-t border-gray-100" />
+
+                {/* Total Likes */}
+                <div className="group flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-red-50 to-rose-100">
+                      <Heart className="h-4 w-4 text-red-500" />
+                    </div>
+                    <span className="text-sm text-gray-600">Total Likes</span>
+                  </div>
+                  <span className="font-semibold text-gray-900 tabular-nums">
+                    {formatNumber(totalStats.totalLikes) ?? 0}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Total Views</span>
-                  <span className="font-semibold text-gray-900">
-                    {/* {formatNumber(totalStats.totalViews)} */}
+
+                <div className="border-t border-gray-100" />
+
+                {/* Total Views */}
+                <div className="group flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-50 to-orange-100">
+                      <Eye className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <span className="text-sm text-gray-600">Total Views</span>
+                  </div>
+                  <span className="font-semibold text-gray-900 tabular-nums">
+                    {formatNumber(totalStats.totalViews) ?? 0}
                   </span>
                 </div>
-                <div className="flex items-center justify-between border-t border-gray-100 pt-2">
-                  <span className="text-sm text-gray-600">Followers</span>
-                  <span className="font-semibold text-gray-900">
-                    {formatNumber(followerCount || 0)}
+
+                <div className="border-t border-gray-100" />
+
+                {/* Followers */}
+                <div className="group flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-50 to-violet-100">
+                      <Users className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <span className="text-sm text-gray-600">Followers</span>
+                  </div>
+                  <span className="font-semibold text-gray-900 tabular-nums">
+                    {formatNumber(profileUser.followers?.length ?? 0)}
+                  </span>
+                </div>
+
+                <div className="group flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-50 to-violet-100">
+                      <UserCheck className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <span className="text-sm text-gray-600">Following</span>
+                  </div>
+                  <span className="font-semibold text-gray-900 tabular-nums">
+                    {formatNumber(profileUser.following?.length ?? 0)}
                   </span>
                 </div>
               </div>
@@ -463,8 +536,11 @@ const ProfilePage = () => {
 
             {/* Tip Banner for own profile */}
             {isOwnProfile && (
-              <div className="rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 p-4 text-white">
-                <div className="flex items-start gap-3">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 p-4 text-white shadow-lg shadow-cyan-500/20">
+                <div className="absolute top-0 right-0 opacity-10">
+                  <MapPin className="-mt-4 -mr-4 h-20 w-20" />
+                </div>
+                <div className="relative flex items-start gap-3">
                   <Sparkles className="h-5 w-5 flex-shrink-0" />
                   <div>
                     <p className="font-semibold">Complete your profile</p>
@@ -487,7 +563,7 @@ const ProfilePage = () => {
                   onClick={() => setViewMode("grid")}
                   className={`rounded-lg p-2 transition-all ${
                     viewMode === "grid"
-                      ? "bg-cyan-100 text-cyan-700"
+                      ? "bg-cyan-100 text-cyan-700 shadow-sm"
                       : "text-gray-500 hover:bg-gray-100"
                   }`}
                 >
@@ -497,7 +573,7 @@ const ProfilePage = () => {
                   onClick={() => setViewMode("list")}
                   className={`rounded-lg p-2 transition-all ${
                     viewMode === "list"
-                      ? "bg-cyan-100 text-cyan-700"
+                      ? "bg-cyan-100 text-cyan-700 shadow-sm"
                       : "text-gray-500 hover:bg-gray-100"
                   }`}
                 >
@@ -505,7 +581,8 @@ const ProfilePage = () => {
                 </button>
               </div>
               {isOwnProfile && (
-                <Button className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:shadow-md">
+                <Button className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:shadow-lg hover:shadow-cyan-500/20">
+                  <Sparkles className="h-4 w-4" />
                   New Guide
                 </Button>
               )}
@@ -519,8 +596,10 @@ const ProfilePage = () => {
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
                   </div>
                 ) : userGuides.length === 0 ? (
-                  <div className="rounded-2xl border border-gray-100 bg-white py-20 text-center">
-                    <Bookmark className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+                  <div className="rounded-2xl border border-gray-100 bg-white/90 py-20 text-center shadow-xl shadow-cyan-500/5 backdrop-blur-sm">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-cyan-50">
+                      <Bookmark className="h-8 w-8 text-cyan-400" />
+                    </div>
                     <h3 className="mb-2 text-lg font-semibold text-gray-900">
                       No public travel guides yet
                     </h3>
@@ -530,7 +609,7 @@ const ProfilePage = () => {
                         : `@${username} hasn't published any travel guides yet.`}
                     </p>
                     {isOwnProfile && (
-                      <Button className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-medium text-white">
+                      <Button className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:shadow-lg hover:shadow-cyan-500/20">
                         Create Guide
                       </Button>
                     )}
@@ -553,8 +632,10 @@ const ProfilePage = () => {
 
             {/* Saved Tab */}
             {activeTab === "saved" && (
-              <div className="rounded-2xl border border-gray-100 bg-white py-20 text-center">
-                <Bookmark className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+              <div className="rounded-2xl border border-gray-100 bg-white/90 py-20 text-center shadow-xl shadow-cyan-500/5 backdrop-blur-sm">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-cyan-50">
+                  <Bookmark className="h-8 w-8 text-cyan-400" />
+                </div>
                 <h3 className="mb-2 text-lg font-semibold text-gray-900">
                   Saved travel guides
                 </h3>
@@ -570,15 +651,15 @@ const ProfilePage = () => {
   );
 };
 
-// Guide Card Component (Grid View)
+// Guide Card Component (Grid View) – enhanced with travel vibes
 const GuideCard = ({ guide }: { guide: TravelGuide }) => {
   return (
-    <div className="group overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+    <div className="group overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg shadow-cyan-500/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10">
       <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-cyan-100 to-blue-100">
         <img
           src={guide.thumbnailImage}
           alt={guide.title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute top-2 right-2">
           {guide.privacy === "public" ? (
@@ -589,22 +670,24 @@ const GuideCard = ({ guide }: { guide: TravelGuide }) => {
         </div>
         {(guide.views || 0) > 1000 && (
           <div className="absolute top-2 left-2">
-            <Badge className="border-0 bg-gradient-to-r from-amber-400 to-orange-500 text-white">
+            <Badge className="border-0 bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md">
               <TrendingUp className="mr-1 h-3 w-3" />
               Popular
             </Badge>
           </div>
         )}
+        {/* Subtle overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       </div>
       <div className="p-4">
         <div className="mb-2 flex items-center gap-2 text-xs text-gray-500">
-          <div className="border-2 flex items-center gap-1 px-2 rounded-2xl bg-teal-500 py-1">
-            <MapPin className="h-5 w-5 text-white" />
-            <span className="text-md text-white">{guide.country}</span>
+          <div className="flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-teal-700">
+            <MapPin className="h-3.5 w-3.5 text-teal-500" />
+            <span className="font-medium">{guide.country}</span>
           </div>
-          <span>•</span>
+          <span className="text-gray-300">•</span>
           <div className="flex items-center gap-1">
-            <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+            <Heart className="h-4 w-4 fill-red-400 text-red-400" />
             <span>
               {Array.isArray(guide.likes)
                 ? guide.likes.length
@@ -612,14 +695,14 @@ const GuideCard = ({ guide }: { guide: TravelGuide }) => {
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <Eye className="h-5 w-5" />
+            <Eye className="h-4 w-4 text-gray-400" />
             <span>{guide.views || 0}</span>
           </div>
         </div>
-        <h3 className="mb-1 line-clamp-1 text-2xl font-semibold text-gray-900 transition-colors hover:text-cyan-600">
+        <h3 className="mb-1 line-clamp-1 text-lg font-semibold text-gray-900 transition-colors group-hover:text-cyan-600">
           {guide.title}
         </h3>
-        <p className="text-md line-clamp-2 text-gray-500">
+        <p className="line-clamp-2 text-sm text-gray-500">
           {guide.description}
         </p>
       </div>
@@ -627,24 +710,27 @@ const GuideCard = ({ guide }: { guide: TravelGuide }) => {
   );
 };
 
-// Guide List Item Component (List View)
+// Guide List Item Component (List View) – enhanced with travel vibes
 const GuideListItem = ({ guide }: { guide: TravelGuide }) => {
   return (
-    <div className="group flex gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-300 hover:shadow-lg">
+    <div className="group flex gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-lg shadow-cyan-500/5 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/10">
       <div className="relative h-24 w-32 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-cyan-100 to-blue-100">
         <img
           src={guide.thumbnailImage}
           alt={guide.title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
-          <MapPin className="h-3 w-3" />
-          <span>{guide.country}</span>
-          <span>•</span>
+          <div className="flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-teal-700">
+            <MapPin className="h-3.5 w-3.5 text-teal-500" />
+            <span className="font-medium">{guide.country}</span>
+          </div>
+          <span className="text-gray-300">•</span>
           <div className="flex items-center gap-1">
-            <Heart className="h-3 w-3 fill-red-500 text-red-500" />
+            <Heart className="h-4 w-4 fill-red-400 text-red-400" />
             <span>
               {Array.isArray(guide.likes)
                 ? guide.likes.length
@@ -652,11 +738,11 @@ const GuideListItem = ({ guide }: { guide: TravelGuide }) => {
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <Eye className="h-3 w-3" />
+            <Eye className="h-4 w-4 text-gray-400" />
             <span>{guide.views || 0}</span>
           </div>
         </div>
-        <h3 className="mb-1 line-clamp-1 font-semibold text-gray-900 transition-colors hover:text-cyan-600">
+        <h3 className="mb-1 line-clamp-1 font-semibold text-gray-900 transition-colors group-hover:text-cyan-600">
           {guide.title}
         </h3>
         <p className="line-clamp-1 text-sm text-gray-500">

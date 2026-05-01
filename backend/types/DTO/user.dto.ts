@@ -12,3 +12,13 @@ export interface UserLoginDTO {
   email: string;
   password: string;
 }
+
+export interface UserUpdateProfileDTO {
+  username?: string;
+  bio?: string;
+}
+
+export type updateData = Partial<UserUpdateProfileDTO> & {
+  profilePicture?: string;
+  profilePictureCloudinaryPublicId?: string;
+};

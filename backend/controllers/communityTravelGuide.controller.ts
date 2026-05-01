@@ -6,7 +6,6 @@ import type { Request, Response } from "express";
 import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary";
 import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary";
 import type { Types } from "mongoose";
-import { mongoDBObjectIDConverter } from "../utils/helpers/mongoDBObjectIDConverter";
 
 const createPost = async (req: Request, res: Response) => {
   const { title, description, country, tags, privacy, authorId, itineraryId } =
@@ -172,7 +171,7 @@ const getAllPublicPost = async (req: Request, res: Response) => {
   const allPublicPost = await CommunityTravelGuide.find({
     privacy: "public",
   })
-    .populate("authorId", "username name email profilePicture")
+    .populate("authorId", "username name email profilePicture following")
 
   //! normalize data
   const normalized = allPublicPost.map((post) => {

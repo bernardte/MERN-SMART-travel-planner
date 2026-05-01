@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Heart,
   MessageCircle,
@@ -13,6 +13,8 @@ import {
   Loader2,
   MapPin,
   TrendingUp,
+  UserCheck,
+  UserPlus2,
 } from "lucide-react";
 const preloadProfile = () => import("@/pages/profile/ProfilePage");
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,8 @@ import type { TravelGuide } from "@/types/interface.type";
 import useAuthStore from "@/stores/useAuthStore";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import useFollowStore from "@/stores/useFollowStore";
+import { useShallow } from "zustand/shallow";
 
 const GuideCard: React.FC<{
   guide: TravelGuide;
@@ -57,6 +61,19 @@ const GuideCard: React.FC<{
   const user = useAuthStore((state) => state.user);
   const { showToast } = useToast();
 
+  const { toggleFollow, followMap, loadingMap } = useFollowStore(
+  useShallow((state) => ({
+      toggleFollow: state.toggleFollow,
+      followMap: state.followingMap,
+      loadingMap: state.loadingMap,
+    })),
+  );
+
+  const isFollowing = guide.author?._id ? followMap[guide.author._id] : false;
+
+  const isLoadingFollow = guide.author?._id
+    ? loadingMap[guide.author._id]
+    : false;
   const handleLike = () => {
     onLike(guide?._id);
   };
@@ -196,7 +213,10 @@ const GuideCard: React.FC<{
             {/* Author & Location */}
             <div className="mb-3 flex items-start justify-between">
               <div className="flex items-center gap-2.5">
-                <Link to={`/profile/${guide.author.username}`} onMouseEnter={preloadProfile}>
+                <Link
+                  to={`/profile/${guide.author.username}`}
+                  onMouseEnter={preloadProfile}
+                >
                   <Avatar className="h-8 w-8 ring-2 ring-cyan-500/20">
                     <AvatarImage
                       src={
@@ -220,7 +240,27 @@ const GuideCard: React.FC<{
                     @{guide.author?.username}
                   </span>
                 </div>
-                {user?._id && <Button variant={"default"}>Follow</Button>}
+                { user?._id && (user?._id !== guide.author?._id) && (
+                  <Button
+                    variant={isFollowing ? "outline" : "default"}
+                    onClick={() => guide.author._id && toggleFollow(guide.author._id)}
+                    disabled={isLoadingFollow}
+                  >
+                    {isLoadingFollow ? (
+                      "Loading..."
+                    ) : isFollowing ? (
+                      <>
+                        <UserCheck />
+                        <span>following</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus2 />
+                        <span>Follow</span>
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
               <Badge
                 variant="outline"

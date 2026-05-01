@@ -69,6 +69,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
   useEffect(() => {
     if (publicPost) {
       setGuides(publicPost);
+
     }
   }, [publicPost]);
   const uniqueCountries = [

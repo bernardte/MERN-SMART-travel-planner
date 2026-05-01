@@ -1,5 +1,6 @@
 import { getLoginUserApi } from "@/api/auth.api";
 import useAuthStore from "@/stores/useAuthStore";
+import useFollowStore from "@/stores/useFollowStore";
 import { createContext, useEffect, useRef, useState } from "react";
 
 interface AuthContextType {
@@ -23,10 +24,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const response = await getLoginUserApi();
         const result = response.data;
         const authUser = result?.data?.user;
+        const map: Record<string, boolean> = {};
         if (!authUser) {
           throw new Error("User not found");
         }
         setUser(authUser);
+        authUser.following?.forEach((id: string) => {
+          map[id] = true;
+        });
+
+        useFollowStore.getState().setFollowingMap(map);
       } catch (error: unknown) {
         console.log(error);
       } finally {

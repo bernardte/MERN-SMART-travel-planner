@@ -13,6 +13,8 @@ import {
   ArrowRight,
   Calendar,
   TrendingUp,
+  UserPlus2,
+  UserCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
@@ -20,6 +22,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { Button } from "@/components/ui/button";
 import useToast from "@/hooks/useToast";
 import { likedAndUnlikedPostApi, savedPost } from "@/api/travel_guide.api";
+import { useShallow } from "zustand/shallow";
+import useFollowStore from "@/stores/useFollowStore";
 
 dayjs.extend(relativeTime);
 
@@ -28,6 +32,14 @@ const SavedPostsPage = () => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const { showToast } = useToast();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const { toggleFollow, followMap, loadingMap } = useFollowStore(
+    useShallow((state) => ({
+      toggleFollow: state.toggleFollow,
+      followMap: state.followingMap,
+      loadingMap: state.loadingMap,
+    })),
+  );
+
   useEffect(() => {
     const handleGetFavouriteTravelGuide = async () => {
       const data = await getUserFavouriteTravelGuideApi();
@@ -164,7 +176,7 @@ const SavedPostsPage = () => {
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-cyan-100/30 to-blue-100/30 blur-3xl" />
             </div>
-            <div className="animate-pulse mx-auto mb-8 flex h-40 w-40 items-center justify-center rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 shadow-2xl">
+            <div className="mx-auto mb-8 flex h-40 w-40 animate-pulse items-center justify-center rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 shadow-2xl">
               <Bookmark className="h-16 w-16 text-cyan-600" strokeWidth={1.5} />
             </div>
             <h3 className="mb-3 text-3xl font-bold text-slate-900">
@@ -184,7 +196,14 @@ const SavedPostsPage = () => {
           // List View - No cards, clean timeline style
           <div className="space-y-12">
             {favouriteGuide.map((post, index) => {
-              console.log(post._id);
+              const isFollowing = post.author?._id
+                ? followMap[post.author._id]
+                : false;
+
+              const isLoadingFollow = post.author?._id
+                ? loadingMap[post.author._id]
+                : false;
+
               return (
                 <div
                   key={post._id}
@@ -238,7 +257,28 @@ const SavedPostsPage = () => {
                                 <span className="font-semibold text-slate-900">
                                   {post.author?.name}
                                 </span>
-                                <Button variant="default">Follow</Button>
+                                <Button
+                                  variant={isFollowing ? "outline" : "default"}
+                                  onClick={() =>
+                                    post.author?._id &&
+                                    toggleFollow(post.author._id)
+                                  }
+                                  disabled={isLoadingFollow}
+                                >
+                                  {isLoadingFollow ? (
+                                    "Loading..."
+                                  ) : isFollowing ? (
+                                    <>
+                                      <UserCheck />
+                                      <span>following</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserPlus2 />
+                                      <span>Follow</span>
+                                    </>
+                                  )}
+                                </Button>
                               </div>
                               <div className="mt-1 flex items-center gap-3">
                                 <span className="inline-flex items-center gap-1 text-xs text-slate-400">
@@ -359,7 +399,9 @@ const SavedPostsPage = () => {
                                 {/* Like Button */}
                                 <Button
                                   variant={"ghost"}
-                                  onClick={() => post._id && handleLike(post._id)}
+                                  onClick={() =>
+                                    post._id && handleLike(post._id)
+                                  }
                                   className="group/like inline-flex items-center gap-2 transition-all duration-300"
                                 >
                                   <Heart
@@ -383,7 +425,9 @@ const SavedPostsPage = () => {
                                 {/* Save Button */}
                                 <Button
                                   variant={"ghost"}
-                                  onClick={() => post._id && handleSavePost(post._id)}
+                                  onClick={() =>
+                                    post._id && handleSavePost(post._id)
+                                  }
                                   className="group/save inline-flex items-center gap-2 transition-all duration-300"
                                 >
                                   <Bookmark
