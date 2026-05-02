@@ -24,6 +24,7 @@ import useToast from "@/hooks/useToast";
 import { likedAndUnlikedPostApi, savedPost } from "@/api/travel_guide.api";
 import { useShallow } from "zustand/shallow";
 import useFollowStore from "@/stores/useFollowStore";
+import useAuthStore from "@/stores/useAuthStore";
 
 dayjs.extend(relativeTime);
 
@@ -32,6 +33,7 @@ const SavedPostsPage = () => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const { showToast } = useToast();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const currentUser = useAuthStore((state) => state.user);
   const { toggleFollow, followMap, loadingMap } = useFollowStore(
     useShallow((state) => ({
       toggleFollow: state.toggleFollow,
@@ -204,6 +206,8 @@ const SavedPostsPage = () => {
                 ? loadingMap[post.author._id]
                 : false;
 
+                console.log("privacy: ", post);
+
               return (
                 <div
                   key={post._id}
@@ -257,28 +261,32 @@ const SavedPostsPage = () => {
                                 <span className="font-semibold text-slate-900">
                                   {post.author?.name}
                                 </span>
-                                <Button
-                                  variant={isFollowing ? "outline" : "default"}
-                                  onClick={() =>
-                                    post.author?._id &&
-                                    toggleFollow(post.author._id)
-                                  }
-                                  disabled={isLoadingFollow}
-                                >
-                                  {isLoadingFollow ? (
-                                    "Loading..."
-                                  ) : isFollowing ? (
-                                    <>
-                                      <UserCheck />
-                                      <span>following</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <UserPlus2 />
-                                      <span>Follow</span>
-                                    </>
-                                  )}
-                                </Button>
+                                {post.author._id !== currentUser?._id && (
+                                  <Button
+                                    variant={
+                                      isFollowing ? "outline" : "default"
+                                    }
+                                    onClick={() =>
+                                      post.author?._id &&
+                                      toggleFollow(post.author._id)
+                                    }
+                                    disabled={isLoadingFollow}
+                                  >
+                                    {isLoadingFollow ? (
+                                      "Loading..."
+                                    ) : isFollowing ? (
+                                      <>
+                                        <UserCheck />
+                                        <span>following</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <UserPlus2 />
+                                        <span>Follow</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
                               </div>
                               <div className="mt-1 flex items-center gap-3">
                                 <span className="inline-flex items-center gap-1 text-xs text-slate-400">
