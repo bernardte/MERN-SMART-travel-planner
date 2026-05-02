@@ -50,6 +50,7 @@ const getAllFavourite = async (req: Request, res: Response) => {
       views: post.views || 0,
 
       isLiked: isLiked,
+      privacy: post.privacy,
 
       isSaved: isSaved,
 
