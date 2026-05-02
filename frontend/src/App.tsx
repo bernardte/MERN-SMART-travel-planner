@@ -36,6 +36,7 @@ function App() {
           {/* ================= Public ================= */}
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/auth" element={<AuthenticationPage />} />
+          <Route path="/plan" element={<PlanNewTripPage />} />
 
           {/* ================= Main Layout ================= */}
           <Route element={<MainLayout />}>
@@ -60,7 +61,6 @@ function App() {
                 element={<TripPlan />}
               />
 
-              <Route path="/plan" element={<PlanNewTripPage />} />
               <Route path="/trips/:id" element={<ViewTripPage />} />
               <Route path="/trips/:id/edit" element={<EditTripPage />} />
             </Route>
