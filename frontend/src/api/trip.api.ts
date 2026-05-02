@@ -41,13 +41,23 @@ export async function getSpecificTripApi(id:string) {
 
 export const createTripPlanApi = async (tripData: tripSchemaType) => {
   const formData = new FormData();
+
   Object.entries(tripData).forEach(([key, value]) => {
-    formData.append(
-      key,
-      typeof value === "object" ? JSON.stringify(value) : value,
-    );
+    if (value instanceof File) {
+      formData.append(key, value);
+    } else if (typeof value === "object" && value !== null) {
+      formData.append(key, JSON.stringify(value));
+    } else if (value !== undefined && value !== null) {
+      formData.append(key, String(value));
+    }
   });
-  const res = await axiosInstance.post("/api/trips-plan/create", formData);
+
+  console.log("BASE URL:", axiosInstance.defaults.baseURL);
+  console.log("FULL URL:", axiosInstance.defaults.baseURL + "/api/trips-plan/create");
+
+  const res = await axiosInstance.post("/api/trips-plan/create", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 
   return handleApiResponse(res);
 };

@@ -1,7 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { handleApiResponse } from "@/lib/helpers/apiWrapper";
 import { buildFormData } from "@/lib/helpers/buildFormData";
-import type { User } from "@/types/interface.type";
 
 export const followAndUnfollowUserApi = async (userId: string) => {
     const response = await axiosInstance.patch(`/api/users/follow-unfollow-user/${userId}`);

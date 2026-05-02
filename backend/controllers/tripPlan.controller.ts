@@ -11,9 +11,13 @@ const createTrip = async (
   req: Request<{}, {}, CreatTripPlanDTO>,
   res: Response,
 ) => {
+  console.log("req.body:", req.body); // should show { title, authorIntro, tripId, sections }
+  console.log("req.file:", req.file); // should show file buffer if image uploaded
+
   const { title, authorIntro, tripId } = req.body;
   const sections = JSON.parse(req.body.sections);
   const user = req.user;
+  const imageFile = req.file; // Buffer + mimetype
 
   if (!title || !title.trim() || !sections || sections.length === 0) {
     throw new AppError(400, "Title and sections are required");
@@ -55,7 +59,6 @@ const createTrip = async (
   await trip.save();
   successApiResponse(res, 201, "Travel guide created successfully!", newGuide);
 };
-
 
 export default {
   createTrip,
