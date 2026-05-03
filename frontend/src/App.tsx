@@ -25,6 +25,7 @@ import {
   EditTripPage,
   TripPlan,
   TravelGuideFeed,
+  EditTripPlanPage,
 } from "@/routes/tripPages";
 import NotFoundPage from "./pages/notFound/NotFoundPage";
 import { Bounce, ToastContainer } from "react-toastify";
@@ -64,6 +65,7 @@ function App() {
                 path="/create-travel-guide/:tripId"
                 element={<TripPlan />}
               />
+              <Route path="/edit-travel-guide/:tripPlanId" element={<EditTripPlanPage />} />
             </Route>
           </Route>
 

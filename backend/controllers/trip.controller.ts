@@ -3,6 +3,7 @@ import Trip from "../models/trip.model";
 import { successApiResponse } from "../utils/succes_api_response";
 import { AppError } from "../utils/error_api_response";
 import type { SaveTripBodyDTO } from "../types/DTO/trip.dto";
+import TripPlan from "../models/tripPlan.model";
 
 const saveTrip = async (
   req: Request<{}, {}, SaveTripBodyDTO>,
@@ -27,7 +28,19 @@ const getMyTrips = async (req: Request, res: Response): Promise<void> => {
   const userId = req.user._id;
 
   const trips = await Trip.find({ userId }).sort({ createdAt: -1 });
-  successApiResponse(res, 200, "Trips fetched successfully", { trips });
+
+  // For each trip, find its tripPlan and attach the tripPlanId
+  const tripsWithPlanId = await Promise.all(
+    trips.map(async (trip) => {
+      const tripPlan = await TripPlan.findOne({ tripId: trip._id } as any).select("_id");
+      return {
+        ...trip.toObject(),
+        tripPlanId: tripPlan?._id?.toString() ?? null,
+      };
+    }),
+  );
+
+  successApiResponse(res, 200, "Trips fetched successfully", { trips: tripsWithPlanId });
 };
 
 const getTripById = async (

@@ -11,14 +11,20 @@ router.post(
   "/create",
   protectRoute,
   upload.single("thumbnailImage"),
-  (req, res, next) => {
-    console.log("=== DEBUG ===");
-    console.log("content-type:", req.headers["content-type"]);
-    console.log("req.body:", req.body);
-    console.log("req.file:", req.file);
-    next();
-  },
   asyncHandler(travelGuideControllers.createTrip),
+);
+
+router.get(
+  "/:tripPlanId",
+  protectRoute,
+  asyncHandler(travelGuideControllers.getTripPlan),
+);
+
+router.put(
+  "/:tripPlanId",
+  protectRoute,
+  upload.single("thumbnailImage"),
+  asyncHandler(travelGuideControllers.updateTripPlan),
 );
 
 export default router;

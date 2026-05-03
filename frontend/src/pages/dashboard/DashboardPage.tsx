@@ -48,7 +48,7 @@ const DashboardPage = () => {
   const fetchTrips = async () => {
     try {
       const data = await getTripApi();
-
+      console.log("trips data:", data.data.trips);
       if (!cancelled) {
         setTrips(data.data.trips);
       }
@@ -229,7 +229,7 @@ const handleDelete = async (tripId:string) => {
                       </button>
 
                       {trip.isTravelGuideCreated ? (
-                        <Button onClick={() => navigate(`/edit-travel-guide`)}>
+                        <Button onClick={() => navigate(`/edit-travel-guide/${trip.tripPlanId}`)}>
                           Edit Travel Guide
                         </Button>
                       ) : (

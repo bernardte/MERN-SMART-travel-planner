@@ -36,6 +36,7 @@ export interface Trip {
   days: IDay[];
   isTravelGuideCreated: boolean;
   createdAt: string;
+  tripPlanId?: string;
 }
 
 // Types for data structure
