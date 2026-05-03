@@ -7,7 +7,6 @@ import {
   Compass,
   Calendar,
   Users,
-  Star,
   MapPin,
   Trash2,
   Loader2,

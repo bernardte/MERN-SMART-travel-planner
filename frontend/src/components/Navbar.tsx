@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { getFilteredNavItems } from "@/lib/helpers/getFilterNavItems";
 const preloadProfile = () => import("../pages/profile/ProfilePage");
 
 const headerVariants: Variants = {
@@ -46,6 +47,7 @@ const Navbar = () => {
   const isHome = location.pathname === "/home";
   const user = useAuthStore((state) => state.user);
   const { handleLogout, isLoading: isLoggingOut } = useHandleLogout();
+  const filteredNavItems = getFilteredNavItems(user);
   const displayName = user
     ? String(user.username || user.email || "Traveler")
     : "Traveler";
@@ -67,14 +69,6 @@ const Navbar = () => {
     if (path !== "/" && location.pathname.startsWith(path)) return true;
     return false;
   };
-
-  const filteredNavItems = navigationItems.filter((item) => {
-    if (item.link === "/dashboard") {
-      return !!user; // only show if logged in
-    }
-
-    return true;
-  });
 
   const renderUserMenu = (isTransparentMode: boolean) => {
     if (!user) return null;
@@ -234,12 +228,33 @@ const Navbar = () => {
             {user ? (
               renderUserMenu(false)
             ) : (
-              <Link
-                to="/auth?mode=login"
-                className="rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 px-5 py-2 text-sm font-medium text-white shadow-md transition-all hover:shadow-lg hover:shadow-blue-500/25"
-              >
-                Log In
-              </Link>
+              <>
+                <Link
+                  to="/auth?mode=login"
+                  className="rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 px-5 py-2 text-sm font-medium text-white shadow-md transition-all hover:shadow-lg hover:shadow-blue-500/25"
+                >
+                  Log In
+                </Link>
+
+                <Link
+                  to={"/auth?mode=signup"}
+                  className={"relative overflow-hidden rounded-full px-6 py-2.5 text-sm font-semibold transition-color"}
+                >
+                  <span className="relative z-10 flex items-center gap-1">
+                    Sign Up
+                    <motion.span
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        repeatDelay: 1,
+                      }}
+                    >
+                      →
+                    </motion.span>
+                  </span>
+                </Link>
+              </>
             )}
 
             {/* Mobile Menu */}

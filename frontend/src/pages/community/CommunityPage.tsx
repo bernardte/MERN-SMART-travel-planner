@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Heart,
   Compass,
@@ -69,7 +69,6 @@ const TravelCommunityGuidesPage: React.FC = () => {
   useEffect(() => {
     if (publicPost) {
       setGuides(publicPost);
-
     }
   }, [publicPost]);
   const uniqueCountries = [
@@ -77,92 +76,103 @@ const TravelCommunityGuidesPage: React.FC = () => {
     ...new Set(guides.map((g) => g.country).filter(Boolean)),
   ];
   const countries = ["all", ...uniqueCountries.sort()];
-  const filteredGuides = guides
-    .filter(
-      (guide) =>
-        selectedCountry === "all" ||
-        guide.country.toLowerCase().trim() ===
-          selectedCountry.toLowerCase().trim(),
-    )
-    .filter((guide) => {
-      const title = guide.title ?? "";
-      const description = guide.description ?? "";
-      const tags = guide.tags ?? [];
+  
+  const filteredGuides = useMemo(() => {
+    return guides
+      .filter(
+        (guide) =>
+          selectedCountry === "all" ||
+          guide.country.toLowerCase().trim() ===
+            selectedCountry.toLowerCase().trim(),
+      )
+      .filter((guide) => {
+        const title = guide.title ?? "";
+        const description = guide.description ?? "";
+        const tags = guide.tags ?? [];
 
-      return (
-        title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tags.some((tag) =>
-          (tag ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
-        )
-      );
-    })
-    .sort((a, b) => {
-      if (sortBy === "likes") return b.likes - a.likes;
-      if (sortBy === "trending")
-        return (b.stats?.views || 0) - (a.stats?.views || 0);
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+        return (
+          title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          tags.some((tag) =>
+            (tag ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
+          )
+        );
+      })
+      .sort((a, b) => {
+        if (sortBy === "likes") return b.likes - a.likes;
+        if (sortBy === "trending")
+          return (b.stats?.views || 0) - (a.stats?.views || 0);
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
+  }, [guides, selectedCountry, searchQuery, sortBy]);
 
-  const handleLike = async (id: string) => {
-    if (!user) {
-      showToast("info", "Please login to like post");
-      return;
-    }
-    try {
-      const data = await likedAndUnlikedPostApi(id);
+  const handleLike = useCallback(
+    async (id: string) => {
+      if (!user) {
+        showToast("info", "Please login to like post");
+        return;
+      }
 
-      setGuides((prev) =>
-        prev.map((guide) =>
-          guide._id === id
-            ? {
-                ...guide,
-                likes: data.likes,
-                isLiked: data.isLiked,
-              }
-            : guide,
-        ),
-      );
-    } catch {
-      showToast("error", "Unexpected error occurs");
-    }
-  };
+      try {
+        const data = await likedAndUnlikedPostApi(id);
 
-  const handleSave = async (id: string) => {
-    if (!user) {
-      showToast("info", "Please login to save post");
-      return;
-    }
+        setGuides((prev) =>
+          prev.map((guide) =>
+            guide._id === id
+              ? { ...guide, likes: data.likes, isLiked: data.isLiked }
+              : guide,
+          ),
+        );
+      } catch {
+        showToast("error", "Unexpected error occurs");
+      }
+    },
+    [user, showToast],
+  );
 
-    try {
-      const data = await savedPost(id);
+  const handleSave = useCallback(
+    async (id: string) => {
+      if (!user) {
+        showToast("info", "Please login to save post");
+        return;
+      }
 
-      setGuides((prev) =>
-        prev.map((guide) =>
-          guide._id === id
-            ? {
-                ...guide,
-                saves: data.saves,
-                isSaved: data.isSaved,
-              }
-            : guide,
-        ),
-      );
-    } catch (error) {
-      showToast("error", "Unexpected error occurs");
-    }
-  };
+      try {
+        const data = await savedPost(id);
+
+        setGuides((prev) =>
+          prev.map((guide) =>
+            guide._id === id
+              ? {
+                  ...guide,
+                  saves: data.saves,
+                  isSaved: data.isSaved,
+                }
+              : guide,
+          ),
+        );
+      } catch (error) {
+        showToast("error", "Unexpected error occurs");
+      }
+    },
+    [user, showToast],
+  );
 
   const handleShare = (id: string) => {
     const url = `${window.location.origin}/guide/${id}`;
     navigator.clipboard.writeText(url);
   };
 
-  const handleDelete = async (postId: string) => {
-    await deleteOwnPost(postId).then(() =>
-      showToast("success", "Your post has been successfully deleted"),
-    );
-  };
+  const handleDelete = useCallback(
+    async (postId: string) => {
+      await deleteOwnPost(postId).then(() =>
+        showToast("success", "Your post has been successfully deleted"),
+      );
+    },
+    [user, showToast],
+  );
 
   //! frontend store the specific guide before preparing pass to post modal
   const handleEdit = (postId: string) => {

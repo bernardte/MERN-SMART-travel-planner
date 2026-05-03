@@ -342,19 +342,31 @@ export const getPersonalizedRecommendation = async (
   const userCountries = userLikedPosts.flatMap((p) => p.country);
 
   if (userCountries.length === 0) {
+    //! popularity
     const coldStart = await CommunityTravelGuide.find({
       privacy: "public",
     })
+      .populate("authorId", "_id username")
       .sort({
         views: -1,
         saves: -1,
         likes: -1,
         createdAt: -1,
-      })
-      .limit(3);
+      });
 
-    successApiResponse(res, 200, "recommend for you", coldStart);
-    return;
+    const filtered = coldStart
+      .map((post) => {
+        // exclude on post
+        if (post.authorId._id.toString() === userId.toString()) {
+          return null;
+        }
+
+        return post;
+      })
+      .filter(Boolean)
+      .slice(0, 3);
+
+    return successApiResponse(res, 200, "Cold start recommendation", filtered);
   }
 
   const scores = guides.map((guide) => {
@@ -385,7 +397,7 @@ export const getPersonalizedRecommendation = async (
       Math.log(1 + (saveCount ?? guide.saves)) * 5 +
       Math.log(1 + guide.views);
 
-    // old post don't included
+    //! old post exclude
     const daysOld =
       (Date.now() - new Date(guide.createdAt).getTime()) /
       (1000 * 60 * 60 * 24);

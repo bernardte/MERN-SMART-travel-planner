@@ -397,4 +397,4 @@ const GuideCard: React.FC<{
   );
 };
 
-export default GuideCard;
+export default React.memo(GuideCard);
