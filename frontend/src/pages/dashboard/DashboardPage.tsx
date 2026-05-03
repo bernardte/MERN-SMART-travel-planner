@@ -19,8 +19,9 @@ import Card from "@/components/card/Card";
 import { useNavigate } from "react-router-dom";
 import useToast from "@/hooks/useToast";
 import useAuthStore from "@/stores/useAuthStore";
-import type { IDay, Trip } from "@/types/interface.type";
+import type { IDay, TravelGuide, Trip } from "@/types/interface.type";
 import { Button } from "@/components/ui/button";
+import { getRecommendedTravelGuideApi } from "@/api/travel_guide.api";
 
 const formatDateRange = (start: string, end: string) => {
   const fmt = (iso: string) =>
@@ -40,6 +41,7 @@ const DashboardPage = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [recommendCommunityGuide, setRecommendCommunityGuide] = useState<TravelGuide[]>([]);
   const { showToast } = useToast();
   const user = useAuthStore(state => state.user);
 
@@ -69,6 +71,20 @@ const DashboardPage = () => {
     cancelled = true;
   };
 }, []);
+
+useEffect(() => {
+  const fetchRecommendedTravelGuide = async() => {
+    try { 
+      const data = await getRecommendedTravelGuideApi();
+      console.log(data);
+      setRecommendCommunityGuide(data);
+    } catch (error: any) {
+      console.log(error.response.data.message);
+    }
+  };
+
+  fetchRecommendedTravelGuide()
+}, [])
 
 const handleDelete = async (tripId:string) => {
   setDeletingId(tripId);
@@ -229,7 +245,11 @@ const handleDelete = async (tripId:string) => {
                       </button>
 
                       {trip.isTravelGuideCreated ? (
-                        <Button onClick={() => navigate(`/edit-travel-guide/${trip.tripPlanId}`)}>
+                        <Button
+                          onClick={() =>
+                            navigate(`/edit-travel-guide/${trip.tripPlanId}`)
+                          }
+                        >
                           Edit Travel Guide
                         </Button>
                       ) : (
@@ -250,7 +270,7 @@ const handleDelete = async (tripId:string) => {
             )}
           </div>
 
-          {/* Community Guides  */}
+          {/* Recommend Community Guides  */}
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all hover:shadow-md">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -258,61 +278,72 @@ const handleDelete = async (tripId:string) => {
                   <Users className="text-primary h-5 w-5" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800">
-                  Community Guides
+                  Recommended Community Guides
                 </h2>
               </div>
-              <button className="text-primary flex items-center gap-1 text-sm">
-                View All <ChevronRight className="h-4 w-4" />
+              <button
+                onClick={() => navigate("/community-guide")}
+                className="text-primary text-sm font-medium hover:underline"
+              >
+                View All →
               </button>
             </div>
-            <div className="space-y-4">
-              {[
-                {
-                  img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100&fit=crop",
-                  title: "Hidden Gems of Kyoto",
-                  author: "TravelWithMike",
-                  readers: "2.3k",
-                  rating: "4.9",
-                },
-                {
-                  img: "https://images.unsplash.com/photo-1528164344705-47542687000d?w=100&h=100&fit=crop",
-                  title: "Ultimate Seoul Food Tour",
-                  author: "KFoodie",
-                  readers: "1.8k",
-                  rating: "4.8",
-                },
-              ].map((guide) => (
-                <div
-                  key={guide.title}
-                  className="flex gap-4 rounded-xl p-3 transition-all hover:bg-gray-50"
-                >
-                  <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl">
-                    <img
-                      src={guide.img}
-                      alt="guide"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-gray-800">
-                        {guide.title}
-                      </h3>
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs text-gray-500">
-                        {guide.rating}
-                      </span>
+
+            {recommendCommunityGuide.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Compass className="mb-2 h-10 w-10 text-gray-300" />
+                <p className="text-sm text-gray-500">No recommendations yet</p>
+                <p className="text-xs text-gray-400">Check back later!</p>
+              </div>
+            ) : (
+              <div className="custom-scrollbar max-h-[480px] space-y-4 overflow-y-auto pr-1">
+                {recommendCommunityGuide.slice(0, 5).map((guide) => (
+                  <div
+                    key={guide._id}
+                    onClick={() => navigate(`/travel-guide/${guide._id}`)}
+                    className="group flex cursor-pointer gap-4 rounded-xl p-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 hover:shadow-sm"
+                  >
+                    {/* Thumbnail */}
+                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl shadow-sm">
+                      <img
+                        src={guide.thumbnailImage || "/placeholder-image.jpg"}
+                        alt={guide.title}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
                     </div>
-                    <p className="text-sm text-gray-500">
-                      By {guide.author} • {guide.readers} readers
-                    </p>
-                    <button className="text-primary mt-2 flex items-center gap-1 text-xs">
-                      Read Guide <ChevronRight className="h-3 w-3" />
-                    </button>
+
+                    {/* Content */}
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <h3 className="truncate text-sm font-semibold text-gray-800">
+                          {guide.title}
+                        </h3>
+                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          {guide.country || "Travel"}
+                        </span>
+                      </div>
+
+                      <p className="mb-2 line-clamp-2 text-xs text-gray-500">
+                        {guide.description || "No description available"}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-xs text-gray-400">
+                          <Users className="h-3 w-3" />
+                          <span>
+                            By {guide.author?.username || "Community"}
+                          </span>
+                        </div>
+                        <button className="text-primary flex items-center gap-1 text-xs font-medium transition-all group-hover:gap-2">
+                          Read Guide
+                          <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -342,5 +373,19 @@ const handleDelete = async (tripId:string) => {
     </div>
   );
 };
+
+<style>{`
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+`}</style>;
 
 export default DashboardPage;

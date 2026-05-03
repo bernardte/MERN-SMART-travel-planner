@@ -84,7 +84,7 @@ const updateTripPlan = async (
   if (!tripPlan) throw new AppError(404, "Trip plan not found");
 
   if (tripPlan.userId.toString() !== user?._id.toString()) {
-    throw new AppError(403, "Unauthorized");
+    throw new AppError(401, "Unauthorized");
   }
 
   if (title) tripPlan.title = title;

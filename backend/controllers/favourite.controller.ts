@@ -15,7 +15,7 @@ const getAllFavourite = async (req: Request, res: Response) => {
   const userId = req.user?._id;
 
   if (!userId) {
-    throw new AppError(403, "Unauthorized");
+    throw new AppError(401, "Unauthorized");
   }
 
   const favourites = await CommunityTravelGuide.find({

@@ -170,8 +170,7 @@ const getAllPublicPost = async (req: Request, res: Response) => {
   const userId = req.user?._id;
   const allPublicPost = await CommunityTravelGuide.find({
     privacy: "public",
-  })
-    .populate("authorId", "username name email profilePicture following")
+  }).populate("authorId", "username name email profilePicture following");
 
   //! normalize data
   const normalized = allPublicPost.map((post) => {
@@ -180,8 +179,10 @@ const getAllPublicPost = async (req: Request, res: Response) => {
       ? obj.likes?.some((id: any) => id.toString() === userId.toString())
       : false;
 
-    const isSaved = userId 
-      ? obj.postSavedByUser?.some((id: any) => id.toString() === userId.toString())
+    const isSaved = userId
+      ? obj.postSavedByUser?.some(
+          (id: any) => id.toString() === userId.toString(),
+        )
       : false;
 
     return {
@@ -300,9 +301,13 @@ export const savedPost = async (req: Request, res: Response) => {
     post.postSavedByUser = post.postSavedByUser.filter(
       (id) => id.toString() !== userId?.toString(),
     );
+
+    post.saves = Math.max(0, post.saves - 1);
   } else {
     //@ts-ignore
     post.postSavedByUser.push(userId);
+
+    post.saves += 1;
   }
 
   await post.save();
@@ -315,8 +320,128 @@ export const savedPost = async (req: Request, res: Response) => {
       isSaved: !isSaved,
     },
   );
+};
 
+export const getPersonalizedRecommendation = async (
+  req: Request,
+  res: Response,
+) => {
+  const userId = req.user?._id;
 
+  if (!userId) throw new AppError(401, "Unauthorized");
+
+  const guides = await CommunityTravelGuide.find({
+    privacy: "public",
+  }).populate("authorId", "_id username");
+
+  const userLikedPosts = await CommunityTravelGuide.find({
+    likes: userId.toString(),
+  });
+
+  const userTags = userLikedPosts.flatMap((p) => p.tags);
+  const userCountries = userLikedPosts.flatMap((p) => p.country);
+
+  if (userCountries.length === 0) {
+    const coldStart = await CommunityTravelGuide.find({
+      privacy: "public",
+    })
+      .sort({
+        views: -1,
+        saves: -1,
+        likes: -1,
+        createdAt: -1,
+      })
+      .limit(3);
+
+    successApiResponse(res, 200, "recommend for you", coldStart);
+    return;
+  }
+
+  const scores = guides.map((guide) => {
+    //! exclude my own publish post
+    if (guide.authorId._id.toString() === userId.toString()) {
+      return null;
+    }
+    //! exclude own like post
+    if (guide.likes.some((id) => id.toString() === userId.toString())) {
+      return null;
+    }
+
+    //! exclude my save post
+    if (
+      guide.postSavedByUser.some((id) => id.toString() === userId.toString())
+    ) {
+      return null;
+    }
+
+    const tagMatch = guide.tags.filter((tag) => userTags.includes(tag)).length;
+    const countryMatch = userCountries.includes(guide.country) ? 1 : 0;
+    const likesCount = guide.likes.length;
+    const saveCount = guide.postSavedByUser.length;
+
+    // log scaling, avoid hot post always being recommended
+    const baseScore =
+      Math.log(1 + likesCount) * 3 +
+      Math.log(1 + (saveCount ?? guide.saves)) * 5 +
+      Math.log(1 + guide.views);
+
+    // old post don't included
+    const daysOld =
+      (Date.now() - new Date(guide.createdAt).getTime()) /
+      (1000 * 60 * 60 * 24);
+
+    const timeDecay = 1 / (1 + daysOld);
+
+    const score = (baseScore + tagMatch * 10 + countryMatch * 8) * timeDecay;
+
+    const obj = guide.toObject();
+
+    const isLiked = obj.likes?.some(
+      (id: any) => id.toString() === userId.toString(),
+    );
+
+    const isSaved = obj.postSavedByUser?.some(
+      (id: any) => id.toString() === userId.toString(),
+    );
+
+    return {
+      ...obj,
+
+      // ⭐ author rename
+      author: obj.authorId,
+      authorId: undefined,
+
+      // ⭐ numbers
+      likes: obj.likes?.length || 0,
+      isLiked,
+      saves: obj.postSavedByUser?.length || 0,
+      isSaved,
+
+      // ⭐ stats
+      stats: {
+        views: obj.views || 0,
+      },
+
+      // ⭐ itinerary
+      itinerary: obj.itineraryId
+        ? {
+            _id: obj.itineraryId,
+            title: obj.title,
+            country: obj.country,
+          }
+        : null,
+
+      // ⭐ recommendation score
+      score,
+    };
+  });
+
+  const sorted = scores
+    .filter(Boolean)
+    .sort((a: any, b: any) => b.score - a.score)
+    .slice(0, 3);
+
+  successApiResponse(res, 200, "Recommendation for you", sorted);
 };
 
 export default {
@@ -326,5 +451,6 @@ export default {
   getAllPublicPost,
   deleteOwnPost,
   likeAndUnlikePost,
-  savedPost
+  savedPost,
+  getPersonalizedRecommendation,
 };
