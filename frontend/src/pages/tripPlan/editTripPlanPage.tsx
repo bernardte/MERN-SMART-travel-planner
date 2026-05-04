@@ -736,10 +736,6 @@ const EditTripPlanPage = () => {
             {isSaving ? <><Loader2 size={16} className="animate-spin" /> Saving…</>
               : <><Save size={16} /> Save changes</>}
           </button>
-          <button onClick={() => showToast("info", "Preview coming soon")}
-            className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:shadow-sm">
-            <Eye size={16} /> Preview
-          </button>
         </div>
       </aside>
 
