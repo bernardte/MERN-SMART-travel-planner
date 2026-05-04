@@ -52,6 +52,11 @@ export const createTripPlanApi = async (tripData: tripSchemaType) => {
   return handleApiResponse(res);
 };
 
+export const getTripPlanByItineraryIdApi = async (itineraryId: string) => {
+  const res = await axiosInstance.get(`/api/trips-plan/by-itinerary/${itineraryId}`);
+  return handleApiResponse(res);
+};
+
 export const getTripPlanApi = async (tripPlanId: string) => {
   const res = await axiosInstance.get(`/api/trips-plan/${tripPlanId}`);
   return handleApiResponse(res);

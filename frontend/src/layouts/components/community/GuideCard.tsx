@@ -43,7 +43,7 @@ import useToast from "@/hooks/useToast";
 import type { TravelGuide } from "@/types/interface.type";
 import useAuthStore from "@/stores/useAuthStore";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import useFollowStore from "@/stores/useFollowStore";
 import { useShallow } from "zustand/shallow";
 
@@ -60,6 +60,7 @@ const GuideCard: React.FC<{
   const [imageLoaded, setImageLoaded] = useState(false);
   const user = useAuthStore((state) => state.user);
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const { toggleFollow, followMap, loadingMap } = useFollowStore(
   useShallow((state) => ({
@@ -157,7 +158,11 @@ const GuideCard: React.FC<{
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer"
+                  onClick={() =>{
+                    console.log("guide._id:", guide._id);
+                    console.log("guide.itineraryId:", guide.itineraryId);
+                    navigate(`/trip-plan/view/${guide.itineraryId}`)}}>
                   <MessageCircle className="mr-2 h-4 w-4 text-cyan-600" />
                   View Details
                 </DropdownMenuItem>

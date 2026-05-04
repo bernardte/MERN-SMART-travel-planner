@@ -29,6 +29,7 @@ import {
   TripPlan,
   TravelGuideFeed,
   EditTripPlanPage,
+  ViewTripPlanPage,
 } from "@/routes/tripPages";
 import NotFoundPage from "./pages/notFound/NotFoundPage";
 import { Bounce, ToastContainer } from "react-toastify";
@@ -64,14 +65,9 @@ function App() {
               <Route path="/favourite-post" element={<SavedPostPage />} />
               <Route path="/post" element={<PostPage />} />
               <Route path="/feed-post/:id" element={<TravelGuideFeed />} />
-              <Route
-                path="/create-travel-guide/:tripId"
-                element={<TripPlan />}
-              />
-              <Route
-                path="/edit-travel-guide/:tripPlanId"
-                element={<EditTripPlanPage />}
-              />
+              <Route path="/create-travel-guide/:tripId" element={<TripPlan />}/>
+              <Route path="/edit-travel-guide/:tripPlanId" element={<EditTripPlanPage />}/>
+              <Route path="/trip-plan/view/:tripPlanId" element={<ViewTripPlanPage />} />
             </Route>
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermOfServicePage />} />

@@ -15,6 +15,12 @@ router.post(
 );
 
 router.get(
+  "/by-itinerary/:tripId",
+  protectRoute,
+  asyncHandler(travelGuideControllers.getTripPlanByTripId),
+);
+
+router.get(
   "/:tripPlanId",
   protectRoute,
   asyncHandler(travelGuideControllers.getTripPlan),
@@ -26,5 +32,7 @@ router.put(
   upload.single("thumbnailImage"),
   asyncHandler(travelGuideControllers.updateTripPlan),
 );
+
+
 
 export default router;

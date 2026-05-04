@@ -96,8 +96,30 @@ const updateTripPlan = async (
   successApiResponse(res, 200, "Trip plan updated successfully!", tripPlan);
 };
 
+const getTripPlanByTripId = async (req: Request, res: Response) => {
+  const tripId = req.params.tripId as string;
+
+  console.log("Looking for tripId:", tripId);
+
+  if (!tripId || !mongoose.Types.ObjectId.isValid(tripId)) {
+    throw new AppError(400, "Invalid tripId");
+  }
+
+  const tripPlan = await TripPlan.findOne({ 
+    tripId: new mongoose.Types.ObjectId(tripId) 
+  });
+
+  console.log("Found tripPlan:", tripPlan);
+  
+  if (!tripPlan) throw new AppError(404, "Trip plan not found");
+
+  successApiResponse(res, 200, "Trip plan fetched successfully!", tripPlan);
+};
+
 export default {
   createTrip,
   getTripPlan,
+  getTripPlanByTripId,
   updateTripPlan,
 };
+
