@@ -8,6 +8,9 @@ import {
   LandingPage,
   AuthenticationPage,
   TravelCommunityGuidesPage,
+  CookiePolicyPage,
+  PrivacyPolicyPage,
+  TermOfServicePage
 } from "@/routes/publicPages";
 
 // private
@@ -65,8 +68,14 @@ function App() {
                 path="/create-travel-guide/:tripId"
                 element={<TripPlan />}
               />
-              <Route path="/edit-travel-guide/:tripPlanId" element={<EditTripPlanPage />} />
+              <Route
+                path="/edit-travel-guide/:tripPlanId"
+                element={<EditTripPlanPage />}
+              />
             </Route>
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermOfServicePage />} />
+            <Route path="/cookies" element={<CookiePolicyPage />} />
           </Route>
 
           {/* ================= 404 ================= */}

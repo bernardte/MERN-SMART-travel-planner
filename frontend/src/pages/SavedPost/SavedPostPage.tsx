@@ -25,6 +25,7 @@ import { likedAndUnlikedPostApi, savedPost } from "@/api/travel_guide.api";
 import { useShallow } from "zustand/shallow";
 import useFollowStore from "@/stores/useFollowStore";
 import useAuthStore from "@/stores/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 dayjs.extend(relativeTime);
 
@@ -34,6 +35,7 @@ const SavedPostsPage = () => {
   const { showToast } = useToast();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const currentUser = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
   const { toggleFollow, followMap, loadingMap } = useFollowStore(
     useShallow((state) => ({
       toggleFollow: state.toggleFollow,
@@ -206,7 +208,7 @@ const SavedPostsPage = () => {
                 ? loadingMap[post.author._id]
                 : false;
 
-                console.log("privacy: ", post);
+              console.log("privacy: ", post);
 
               return (
                 <div
@@ -245,7 +247,12 @@ const SavedPostsPage = () => {
                         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
                           <div className="flex items-center gap-4">
                             {/* Author Avatar */}
-                            <div className="relative">
+                            <div
+                              className="relative cursor-pointer"
+                              onClick={() =>
+                                navigate(`/profile/${post.author.username}`)
+                              }
+                            >
                               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100" />
                               <img
                                 src={

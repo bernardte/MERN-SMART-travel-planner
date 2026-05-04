@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Heart,
   MessageCircle,
@@ -217,7 +217,7 @@ const GuideCard: React.FC<{
                   to={`/profile/${guide.author.username}`}
                   onMouseEnter={preloadProfile}
                 >
-                  <Avatar className="h-8 w-8 ring-2 ring-cyan-500/20">
+                  <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-cyan-500/20">
                     <AvatarImage
                       src={
                         guide.author?.profilePicture ??
@@ -240,10 +240,12 @@ const GuideCard: React.FC<{
                     @{guide.author?.username}
                   </span>
                 </div>
-                { user?._id && (user?._id !== guide.author?._id) && (
+                {user?._id && user?._id !== guide.author?._id && (
                   <Button
                     variant={isFollowing ? "outline" : "default"}
-                    onClick={() => guide.author._id && toggleFollow(guide.author._id)}
+                    onClick={() =>
+                      guide.author._id && toggleFollow(guide.author._id)
+                    }
                     disabled={isLoadingFollow}
                   >
                     {isLoadingFollow ? (
@@ -395,4 +397,4 @@ const GuideCard: React.FC<{
   );
 };
 
-export default GuideCard;
+export default React.memo(GuideCard);

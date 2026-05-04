@@ -12,9 +12,11 @@ import {
   Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import useAuthStore from "@/stores/useAuthStore";
 
 const NotFoundPage = () => {
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-cyan-50/50">
@@ -93,13 +95,15 @@ const NotFoundPage = () => {
                 <Home className="h-4 w-4" />
                 Home
               </button>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md"
-              >
-                <Globe className="h-4 w-4" />
-                Travel Guides
-              </button>
+              {user && (
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md"
+                >
+                  <Globe className="h-4 w-4" />
+                  Travel Guides
+                </button>
+              )}
               <button
                 onClick={() => navigate("/community-guide")}
                 className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md"

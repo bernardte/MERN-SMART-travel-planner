@@ -7,3 +7,15 @@ export const AuthenticationPage = lazy(
 export const TravelCommunityGuidesPage = lazy(
   () => import("@/pages/community/CommunityPage"),
 );
+
+export const PrivacyPolicyPage = lazy(
+  () => import("@/pages/privacyPolicyPage/PrivacyPolicyPage"),
+);
+
+export const TermOfServicePage = lazy(
+  () => import("@/pages/termOfService/TermOfService"),
+);
+
+export const CookiePolicyPage = lazy(
+  () => import("@/pages/cookiePolicyPage/CookiePolicyPage"),
+);

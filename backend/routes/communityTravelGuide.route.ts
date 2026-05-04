@@ -44,5 +44,10 @@ route.delete(
   protectRoute,
   asyncHandler(communityTravelGuideController.deleteOwnPost),
 );
+route.get(
+  "/recommend-travel-guide",
+  protectRoute,
+  asyncHandler(communityTravelGuideController.getPersonalizedRecommendation),
+);
 
 export default route;

@@ -75,3 +75,11 @@ export const savedPost = async (postId: string) => {
 
   return response.data.data
 }
+
+export const getRecommendedTravelGuideApi = async () => {
+  const response = await axiosInstance.get(
+    "/api/community/recommend-travel-guide",
+  );
+
+  return response.data.data;
+}
