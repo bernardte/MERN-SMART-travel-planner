@@ -54,6 +54,10 @@ function App() {
               path="/community-guide"
               element={<TravelCommunityGuidesPage />}
             />
+            <Route
+              path="/trip-plan/view/:tripPlanId"
+              element={<ViewTripPlanPage />}
+            />
 
             {/* ========== Protected ========== */}
             <Route element={<ProtectRoute />}>
@@ -65,9 +69,14 @@ function App() {
               <Route path="/favourite-post" element={<SavedPostPage />} />
               <Route path="/post" element={<PostPage />} />
               <Route path="/feed-post/:id" element={<TravelGuideFeed />} />
-              <Route path="/create-travel-guide/:tripId" element={<TripPlan />}/>
-              <Route path="/edit-travel-guide/:tripPlanId" element={<EditTripPlanPage />}/>
-              <Route path="/trip-plan/view/:tripPlanId" element={<ViewTripPlanPage />} />
+              <Route
+                path="/create-travel-guide/:tripId"
+                element={<TripPlan />}
+              />
+              <Route
+                path="/edit-travel-guide/:tripPlanId"
+                element={<EditTripPlanPage />}
+              />
             </Route>
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermOfServicePage />} />

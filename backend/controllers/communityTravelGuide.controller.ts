@@ -6,6 +6,8 @@ import type { Request, Response } from "express";
 import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary";
 import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary";
 import type { Types } from "mongoose";
+import mongoose from "mongoose";
+import User from "../models/user.model";
 
 const createPost = async (req: Request, res: Response) => {
   const { title, description, country, tags, privacy, authorId, itineraryId } =
@@ -282,7 +284,7 @@ const likeAndUnlikePost = async (req: Request, res: Response) => {
   );
 };
 
-export const savedPost = async (req: Request, res: Response) => {
+const savedPost = async (req: Request, res: Response) => {
   const { postId } = req.params;
   const userId = req.user?._id;
 
@@ -322,7 +324,7 @@ export const savedPost = async (req: Request, res: Response) => {
   );
 };
 
-export const getPersonalizedRecommendation = async (
+const getPersonalizedRecommendation = async (
   req: Request,
   res: Response,
 ) => {
@@ -456,6 +458,81 @@ export const getPersonalizedRecommendation = async (
   successApiResponse(res, 200, "Recommendation for you", sorted);
 };
 
+const getFollowersTravelGuide = async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+
+  // @ts-ignore
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    throw new AppError(401, "Unauthorized");
+  }
+
+  const user = await User.findById(userId).select("following");
+
+  if (!user) {
+    throw new AppError(404, "User not found");
+  }
+
+  const followingIds = user.following || [];
+
+  const guides = await CommunityTravelGuide.find({
+    // @ts-ignore
+    authorId: { $in: followingIds },
+    privacy: "private", // ⚠️ 推荐 public（feed 常规逻辑）
+  })
+    .populate("authorId", "username profilePicture")
+    .sort({ createdAt: -1 });
+
+  // ✅ normalize
+  const normalizedGuides = guides.map((obj: any) => {
+    const isLiked =
+      req.user &&
+      obj.likes?.some((id: any) => id.toString() === req.user?._id.toString());
+
+    const isSaved =
+      req.user &&
+      obj.postSavedByUser?.some(
+        (id: any) => id.toString() === req.user?._id.toString(),
+      );
+
+    return {
+      ...obj.toObject(), // 👈 important (Mongoose doc → plain object)
+
+      // rename
+      author: obj.authorId,
+      authorId: undefined,
+
+      // numbers
+      likes: obj.likes?.length || 0,
+      isLiked,
+      saves: obj.postSavedByUser?.length || 0,
+      isSaved,
+
+      // stats
+      stats: {
+        views: obj.views || 0,
+      },
+
+      createdAt: obj.createdAt,
+
+      // itinerary formatting
+      itinerary: obj.itineraryId
+        ? {
+            _id: obj.itineraryId,
+            title: obj.title,
+            country: obj.country,
+          }
+        : null,
+    };
+  });
+
+  return successApiResponse(
+    res,
+    200,
+    "Followers travel guides fetched successfully",
+    normalizedGuides,
+  );
+};
+
 export default {
   createPost,
   editPost,
@@ -465,4 +542,5 @@ export default {
   likeAndUnlikePost,
   savedPost,
   getPersonalizedRecommendation,
+  getFollowersTravelGuide,
 };

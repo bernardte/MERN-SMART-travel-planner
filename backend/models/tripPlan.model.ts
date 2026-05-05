@@ -1,7 +1,15 @@
 import mongoose, { Types } from "mongoose";
 import { sectionSchema } from "./section.model";
 
-export interface TripPlan {
+export interface IReview {
+  _id?: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
+  username: string;
+  content: string;
+  createdAt?: Date;
+}
+
+export interface ITripPlan extends mongoose.Document {
   _id: Types.ObjectId;
 
   // 🔗 Link to Trip
@@ -21,24 +29,15 @@ export interface TripPlan {
   country?: string;
 
   // ❤️ Social
-  likesCount: number;
-  averageRating: number;
-  totalRatings: number;
   thumbnailImage: String;
 
   // 🔐 Visibility
-  publishStatus: "publish" | "private";
-  reviews: {
-    user: Types.ObjectId;
-    username: string;
-    rating: Number;
-    comment: String;
-  }[];
+  reviews: IReview[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-const tripPlanSchema = new mongoose.Schema<TripPlan>(
+const tripPlanSchema = new mongoose.Schema<ITripPlan>(
   {
     tripId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -63,24 +62,15 @@ const tripPlanSchema = new mongoose.Schema<TripPlan>(
     country: String,
     thumbnailImage: String,
 
-    likesCount: { type: Number, default: 0 },
-    averageRating: { type: Number, default: 0 },
-    totalRatings: { type: Number, default: 0 },
     reviews: [
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         username: { type: String },
-        tripId: { type: mongoose.Schema.Types.ObjectId },
-        rating: { type: Number, min: 1, max: 5 },
-        comment: { type: String },
+        content: { type: String },
         createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now }
       },
     ],
-    publishStatus: {
-      type: String,
-      enum: ["publish", "private"],
-      default: "private",
-    },
   },
   { timestamps: true },
 );
@@ -89,6 +79,6 @@ tripPlanSchema.index({ userId: 1 });
 tripPlanSchema.index({ publishStatus: 1 });
 tripPlanSchema.index({ country: 1 });
 
-const TripPlan = mongoose.model<TripPlan>("TravelGuide", tripPlanSchema);
+const TripPlan = mongoose.model<ITripPlan>("TravelGuide", tripPlanSchema);
 
 export default TripPlan;

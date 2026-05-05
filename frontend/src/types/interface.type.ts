@@ -39,6 +39,13 @@ export interface Trip {
   tripPlanId?: string;
 }
 
+export interface Comment {
+  _id?: string;
+  user: User;
+  content: string;
+  createdAt: string;
+}
+
 // Types for data structure
 export interface ListItem {
   id: string;
@@ -122,3 +129,13 @@ export type CreateTravelGuide = Omit<
   TravelGuide,
   "_id" | "createdAt" | "updatedAt"
 >;
+
+//! Landing Page
+export interface PopularDestination {
+  topGuide: {
+    _id: string;
+    thumbnailImage: string;
+    description: string;
+  };
+  country: string;
+}
