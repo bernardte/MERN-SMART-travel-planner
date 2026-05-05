@@ -83,3 +83,9 @@ export const getRecommendedTravelGuideApi = async () => {
 
   return response.data.data;
 }
+
+export const getFollowersTravelGuideApi = async () => {
+  const response = await axiosInstance.get("/api/community/get-followers-travel-guide");
+
+  return response.data.data;
+}

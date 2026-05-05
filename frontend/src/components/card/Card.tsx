@@ -1,60 +1,44 @@
-import { ChevronRight, MapPin } from "lucide-react";
-import { Link } from "react-router";
+import type { ReactNode } from "react";
 
-interface CardProps {
-  country: string;
-  location: string;
-  description: string;
-  href: string;
+interface StatsCardProps {
+  title: string;
+  value: number;
+  icon: ReactNode;
+  gradient: string; // 用于图标背景的渐变色
 }
 
-const Card = ({ country, location, description, href }: CardProps) => {
-  const colors = [
-    "from-red-500 to-orange-500",
-    "from-blue-500 to-cyan-500",
-    "from-purple-500 to-pink-500",
-    "from-emerald-500 to-teal-500",
-    "from-indigo-500 to-violet-500",
-    "from-amber-500 to-yellow-500",
-  ];
-
-  const getColor = (text: string) => {
-    let hash = 0;
-
-    for (let i = 0; i < text.length; i++) {
-      hash += text.charCodeAt(i);
-    }
-
-    return colors[hash % colors.length];
-  };
-
-  const gradient = getColor(country + location);
-
+const StatsCard = ({ title, value, icon, gradient }: StatsCardProps) => {
   return (
-    <div
-      className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-6 text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl`}
-    >
-      <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-white/20 blur-2xl" />
+    <div className="group relative overflow-hidden rounded-2xl bg-white p-5 shadow-md ring-1 ring-gray-100 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      {/* 装饰性渐变光晕（鼠标悬停时可见） */}
+      <div
+        className={`absolute -top-8 -right-8 h-32 w-32 rounded-full bg-gradient-to-br ${gradient} opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-20`}
+      />
 
-      <div className="relative z-10">
-        <div className="mb-3 flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
-          <span className="text-sm font-medium">{country}</span>
+      <div className="relative z-10 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+            {title}
+          </p>
+          <h3 className="mt-1 text-3xl font-extrabold tracking-tight text-gray-900">
+            {value.toLocaleString()}
+          </h3>
         </div>
 
-        <h3 className="text-2xl font-bold">{location}</h3>
-
-        <p className="mt-2 text-sm text-white/80">{description}</p>
-
-        <Link
-          to={href}
-          className="mt-4 inline-flex items-center gap-2 text-sm font-medium"
+        {/* 图标容器：带渐变背景和柔和阴影 */}
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}
         >
-          Explore <ChevronRight className="h-4 w-4" />
-        </Link>
+          <div className="h-5 w-5 text-white">{icon}</div>
+        </div>
       </div>
+
+      {/* 底部微装饰线 */}
+      <div
+        className={`absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r ${gradient} transition-all duration-500 group-hover:w-full`}
+      />
     </div>
   );
 };
 
-export default Card;
+export default StatsCard;

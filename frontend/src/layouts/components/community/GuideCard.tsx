@@ -159,7 +159,7 @@ const GuideCard: React.FC<{
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem className="cursor-pointer"
-                  onClick={() =>{
+                  onClick={() => {
                     console.log("guide._id:", guide._id);
                     console.log("guide.itineraryId:", guide.itineraryId);
                     navigate(`/trip-plan/view/${guide.itineraryId}`)}}>

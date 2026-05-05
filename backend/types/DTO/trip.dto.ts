@@ -6,3 +6,7 @@ export interface SaveTripBodyDTO {
   endDate: string;
   days: IDay[];
 }
+
+export interface createCommentDTO {
+  content: string;
+}

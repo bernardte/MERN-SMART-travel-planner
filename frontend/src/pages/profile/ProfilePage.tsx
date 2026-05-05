@@ -40,6 +40,7 @@ import type { TravelGuide, User } from "@/types/interface.type";
 import { useParams } from "react-router-dom";
 import { useShallow } from "zustand/shallow";
 import useFollowStore from "@/stores/useFollowStore";
+import PostModal from "@/layouts/components/community/PostModal";
 
 const ProfilePage = () => {
   const { showToast } = useToast();
@@ -71,7 +72,7 @@ const ProfilePage = () => {
     totalViews: 0,
     totalLikes: 0,
   });
-  const user = useAuthStore((state) => state.user);
+   const [createModalOpen, setCreateModalOpen] = useState(false)
   const { toggleFollow, followingMap, loadingMap } = useFollowStore(
     useShallow((state) => ({
       toggleFollow: state.toggleFollow,
@@ -220,6 +221,13 @@ const ProfilePage = () => {
     if (num >= 1000) return (num / 1000).toFixed(1) + "K";
     return num;
   };
+
+  const handleGuideCreated = (res: TravelGuide) => {
+    const newGuide = res;
+
+    setUserGuides((prev) => [newGuide, ...prev]);
+  };
+
 
   if (!profileUser) {
     return (
@@ -581,7 +589,10 @@ const ProfilePage = () => {
                 </button>
               </div>
               {isOwnProfile && (
-                <Button className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:shadow-lg hover:shadow-cyan-500/20">
+                <Button
+                  onClick={() => setCreateModalOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:shadow-lg hover:shadow-cyan-500/20"
+                >
                   <Sparkles className="h-4 w-4" />
                   New Guide
                 </Button>
@@ -647,6 +658,14 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+      {createModalOpen && (
+        <PostModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          onPostCreated={handleGuideCreated}
+          mode="create"
+        />
+      )}
     </div>
   );
 };

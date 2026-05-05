@@ -21,10 +21,26 @@ import { InteractiveGridPattern } from "@/components/ui/interactive-grid-pattern
 import Testinomial from "@/layouts/components/landing/Testinomial";
 import { Marquee } from "@/components/ui/marquee";
 import useAuthStore from "@/stores/useAuthStore";
+import { useEffect, useState } from "react";
+import { getPopularDestination } from "@/api/landing_page.api";
+import type { PopularDestination } from "@/types/interface.type";
 const LandingPage = () => {
   const firstRow = testimonials.slice(0, Math.ceil(testimonials.length / 2));
   const secondRow = testimonials.slice(Math.ceil(testimonials.length / 2));
-  const user = useAuthStore(state => state.user);
+  const user = useAuthStore((state) => state.user);
+  const [popularDestination, setPopularDestination] = useState<
+    PopularDestination[]
+  >([]);
+
+  useEffect(() => {
+    const handleGetPopularDestination = async () => {
+      const data = await getPopularDestination();
+      console.log("destination: ", data);
+      setPopularDestination(data);
+    };
+
+    handleGetPopularDestination();
+  }, []);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
@@ -84,7 +100,7 @@ const LandingPage = () => {
               to={user ? "/dashboard" : "/auth?mode=signup"}
               className="from-primary to-primary/80 shadow-primary/30 flex items-center gap-2 rounded-full bg-gradient-to-r px-8 py-3.5 font-semibold text-white shadow-lg transition-all hover:scale-105"
             >
-              {user ? "Start Planning Now" : "Register Now" }
+              {user ? "Start Planning Now" : "Register Now"}
               <ArrowRight className="h-4 w-4" />
             </Link>
             <button className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3.5 font-semibold text-white transition-all hover:bg-white/10">
@@ -192,35 +208,30 @@ const LandingPage = () => {
             </Link>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {destinations.map((dest, index) => (
-              <Link
-                key={index}
-                to={`/destination/${dest.slug}`}
-                className="group"
+          <Marquee reverse pauseOnHover className="py-3 [--duration:40s]">
+            {popularDestination.map((dest) => (
+              <div
+                key={dest.topGuide._id}
+                className="relative overflow-hidden rounded-2xl"
               >
-                <div className="relative overflow-hidden rounded-2xl">
-                  <img
-                    src={dest.image}
-                    alt={dest.name}
-                    className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
-                    <h3 className="text-xl font-bold">{dest.name}</h3>
-                    <p className="text-sm text-white/80">{dest.country}</p>
-                    <div className="mt-2 flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm">{dest.rating}</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 rounded-full bg-white/20 p-1.5 backdrop-blur-sm">
-                    <Heart className="h-4 w-4" />
-                  </div>
+                <img
+                  src={dest.topGuide.thumbnailImage}
+                  alt={dest.country}
+                  className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
+                  <p className="text-sm text-white/80">{dest.country}</p>
+                  <h3 className="text-xl font-bold">
+                    {dest.topGuide.description}
+                  </h3>
                 </div>
-              </Link>
+                <div className="absolute top-3 right-3 rounded-full bg-white/20 p-1.5 backdrop-blur-sm">
+                  <Heart className="h-4 w-4" />
+                </div>
+              </div>
             ))}
-          </div>
+          </Marquee>
         </div>
       </section>
 
@@ -353,40 +364,42 @@ const LandingPage = () => {
         </Marquee>
       </section>
 
-      {/* CTA 行动号召 */}
-      <section className="px-4 py-20 md:px-8 md:py-28">
-        <div className="mx-auto max-w-5xl">
-          <div className="from-primary relative overflow-hidden rounded-3xl bg-gradient-to-r to-purple-600 p-8 text-center md:p-12">
-            <div className="absolute top-0 right-0 -mt-20 -mr-20 h-64 w-64 rounded-full bg-white/10" />
-            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-64 w-64 rounded-full bg-white/10" />
+      {/* CTA action */}
+      {!user && (
+        <section className="px-4 py-20 md:px-8 md:py-28">
+          <div className="mx-auto max-w-5xl">
+            <div className="from-primary relative overflow-hidden rounded-3xl bg-gradient-to-r to-purple-600 p-8 text-center md:p-12">
+              <div className="absolute top-0 right-0 -mt-20 -mr-20 h-64 w-64 rounded-full bg-white/10" />
+              <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-64 w-64 rounded-full bg-white/10" />
 
-            <div className="relative z-10">
-              <h2 className="text-3xl font-bold text-white md:text-4xl">
-                Ready to Start Your Journey?
-              </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-white/80">
-                Join thousands of travelers who are already discovering amazing
-                destinations and planning unforgettable trips.
-              </p>
-              <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Link
-                  to="/dashboard"
-                  className="text-primary flex items-center gap-2 rounded-full bg-white px-8 py-3 font-semibold shadow-lg transition-all hover:scale-105"
-                >
-                  Get Started Free
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <button className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3 font-semibold text-white transition-all hover:bg-white/10">
-                  Learn More
-                </button>
+              <div className="relative z-10">
+                <h2 className="text-3xl font-bold text-white md:text-4xl">
+                  Ready to Start Your Journey?
+                </h2>
+                <p className="mx-auto mt-4 max-w-2xl text-white/80">
+                  Join thousands of travelers who are already discovering
+                  amazing destinations and planning unforgettable trips.
+                </p>
+                <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                  <Link
+                    to="/dashboard"
+                    className="text-primary flex items-center gap-2 rounded-full bg-white px-8 py-3 font-semibold shadow-lg transition-all hover:scale-105"
+                  >
+                    Get Started Free
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <button className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3 font-semibold text-white transition-all hover:bg-white/10">
+                    Learn More
+                  </button>
+                </div>
+                <p className="mt-6 text-sm text-white/60">
+                  No credit card required • Free forever
+                </p>
               </div>
-              <p className="mt-6 text-sm text-white/60">
-                No credit card required • Free forever
-              </p>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 };

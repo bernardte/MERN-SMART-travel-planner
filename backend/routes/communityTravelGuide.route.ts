@@ -50,4 +50,9 @@ route.get(
   asyncHandler(communityTravelGuideController.getPersonalizedRecommendation),
 );
 
+route.get(
+  "/get-followers-travel-guide",
+  protectRoute,
+  asyncHandler(communityTravelGuideController.getFollowersTravelGuide),
+);
 export default route;
