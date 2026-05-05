@@ -299,7 +299,7 @@ const handleDelete = async (tripId:string) => {
                 {recommendCommunityGuide.slice(0, 5).map((guide) => (
                   <div
                     key={guide._id}
-                    onClick={() => navigate(`/travel-guide/${guide._id}`)}
+                    onClick={() => navigate(`/trip-plan/view/${guide.itineraryId}`)}
                     className="group flex cursor-pointer gap-4 rounded-xl p-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 hover:shadow-sm"
                   >
                     {/* Thumbnail */}

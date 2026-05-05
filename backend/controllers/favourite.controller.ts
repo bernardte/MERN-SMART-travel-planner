@@ -44,6 +44,7 @@ const getAllFavourite = async (req: Request, res: Response) => {
       description: post.description,
       country: post.country,
       thumbnailImage: post.thumbnailImage,
+      itineraryId: post.itineraryId,
 
       likes: post.likes?.length || 0,
       saves: post.postSavedByUser?.length || 0,
