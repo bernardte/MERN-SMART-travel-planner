@@ -4,6 +4,7 @@ import { successApiResponse } from "../utils/succes_api_response";
 import { AppError } from "../utils/error_api_response";
 import type { SaveTripBodyDTO } from "../types/DTO/trip.dto";
 import TripPlan from "../models/tripPlan.model";
+import CommunityTravelGuide from "../models/community.model";
 
 const saveTrip = async (
   req: Request<{}, {}, SaveTripBodyDTO>,
@@ -32,7 +33,9 @@ const getMyTrips = async (req: Request, res: Response): Promise<void> => {
   // For each trip, find its tripPlan and attach the tripPlanId
   const tripsWithPlanId = await Promise.all(
     trips.map(async (trip) => {
-      const tripPlan = await TripPlan.findOne({ tripId: trip._id } as any).select("_id");
+      const tripPlan = await TripPlan.findOne({
+        tripId: trip._id,
+      } as any).select("_id");
       return {
         ...trip.toObject(),
         tripPlanId: tripPlan?._id?.toString() ?? null,
@@ -40,7 +43,9 @@ const getMyTrips = async (req: Request, res: Response): Promise<void> => {
     }),
   );
 
-  successApiResponse(res, 200, "Trips fetched successfully", { trips: tripsWithPlanId });
+  successApiResponse(res, 200, "Trips fetched successfully", {
+    trips: tripsWithPlanId,
+  });
 };
 
 const getTripById = async (
@@ -100,10 +105,72 @@ const deleteTrip = async (
   successApiResponse(res, 200, "Trip deleted successfully");
 };
 
+const getPopularDestination = async (req: Request, res: Response) => {
+  const result = await CommunityTravelGuide.aggregate([
+    {
+      $match: {
+        privacy: "public",
+      },
+    },
+
+    // 1. Compute per-post score
+    {
+      $addFields: {
+        likesCount: { $size: "$likes" },
+        score: {
+          $add: [
+            { $multiply: [{ $size: "$likes" }, 2] },
+            { $multiply: ["$saves", 3] },
+            "$views",
+          ],
+        },
+      },
+    },
+
+    // 2. Group by country
+    {
+      $group: {
+        _id: "$country",
+        totalScore: { $sum: "$score" },
+        totalLikes: { $sum: "$likesCount" },
+        totalSaves: { $sum: "$saves" },
+        totalViews: { $sum: "$views" },
+        guides: { $push: "$$ROOT" },
+      },
+    },
+
+    // 3. Sort countries by popularity
+    {
+      $sort: { totalScore: -1 },
+    },
+
+    // 4. Limit top countries
+    {
+      $limit: 5,
+    },
+
+    // 5. Clean output
+    {
+      $project: {
+        _id: 0,
+        country: "$_id",
+        totalScore: 1,
+        totalLikes: 1,
+        totalSaves: 1,
+        totalViews: 1,
+        topGuide: { $arrayElemAt: ["$guides", 0] },
+      },
+    },
+  ]);
+
+  successApiResponse(res, 200, "Popular destination", result);
+};
+
 export default {
   saveTrip,
   getMyTrips,
   getTripById,
   updateTrip,
   deleteTrip,
+  getPopularDestination,
 };

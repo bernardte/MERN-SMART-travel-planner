@@ -322,7 +322,7 @@ function AddPlaceModal({
         <div className="relative bg-gradient-to-br from-blue-500 to-cyan-500 px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+              <div className="flex h-10 w-10 mx-3 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
                 <MapPin size={18} className="text-white" />
               </div>
               <h2 className="text-lg font-semibold text-white">Add New Place</h2>
@@ -1395,16 +1395,16 @@ const TripPlanPage = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {getRoutePolylines().map((poly, idx) => (
-              <Polyline
-                key={idx}
-                positions={poly.positions}
-                color={poly.color}
-                weight={5}
-                opacity={0.8}
-                dashArray="8, 8"
-              />
-            ))}
+            {/* {getRoutePolylines().map((poly, idx) => (
+              // <Polyline
+              //   key={idx}
+              //   positions={poly.positions}
+              //   color={poly.color}
+              //   weight={5}
+              //   opacity={0.8}
+              //   dashArray="8, 8"
+              // />
+            ))} */}
             {allMarkers.map((marker, idx) => {
               const color =
                 marker.type === "route"

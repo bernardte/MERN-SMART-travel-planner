@@ -1,39 +1,3 @@
-
-
-interface Destination {
-  country: string;
-  location: string;
-  description: string;
-  href: string;
-}
-
-export const destination: Destination[] = [
-  {
-    country: "China",
-    location: "Shang Hai",
-    description: "The vibrant metropolis",
-    href: "/shanghai",
-  },
-  {
-    country: "Korea",
-    location: "Seoul & Busan",
-    description: "K-pop, food & culture",
-    href: "/korea",
-  },
-  {
-    country: "Japan",
-    location: "Tokyo & Kyoto",
-    description: "Tradition meets modern life",
-    href: "/japan",
-  },
-  {
-    country: "Thailand",
-    location: "Bangkok & Phuket",
-    description: "Beaches, nightlife & street food",
-    href: "/thailand",
-  },
-];
-
 interface CardListProps {
   title: string;
   dateRange: string;

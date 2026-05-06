@@ -3,18 +3,33 @@ import { handleApiResponse } from "@/lib/helpers/apiWrapper";
 import type { tripSchemaType } from "@/lib/zod/tripSchema";
 import type { DayEntry } from "@/pages/planNewTrip/editTripPage";
 
-export async function planNewTripApi(country: string, startDate: string, endDate: string, days: DayEntry[]){
-    await axiosInstance.post(
-        "/api/trips/save",
-        { country, startDate, endDate, days: days },
-    );
+export async function planNewTripApi(
+  country: string,
+  startDate: string,
+  endDate: string,
+  days: DayEntry[],
+) {
+  await axiosInstance.post("/api/trips/save", {
+    country,
+    startDate,
+    endDate,
+    days: days,
+  });
 }
 
-export async function editTripApi(country: string, startDate: string, endDate: string, days: DayEntry[], id: string){
-    await axiosInstance.put(
-        `/api/trips/${id}`,
-        { country, startDate, endDate, days: days },
-    );
+export async function editTripApi(
+  country: string,
+  startDate: string,
+  endDate: string,
+  days: DayEntry[],
+  id: string,
+) {
+  await axiosInstance.put(`/api/trips/${id}`, {
+    country,
+    startDate,
+    endDate,
+    days: days,
+  });
 }
 
 export async function deleteTripApi(tripId: string) {
@@ -23,8 +38,8 @@ export async function deleteTripApi(tripId: string) {
 }
 
 export async function getTripApi() {
-    const response = await axiosInstance.get("/api/trips/my-trips");
-    return response.data;
+  const response = await axiosInstance.get("/api/trips/my-trips");
+  return response.data;
 }
 
 export async function getSpecificTripApi(id: string) {
@@ -53,7 +68,9 @@ export const createTripPlanApi = async (tripData: tripSchemaType) => {
 };
 
 export const getTripPlanByItineraryIdApi = async (itineraryId: string) => {
-  const res = await axiosInstance.get(`/api/trips-plan/by-itinerary/${itineraryId}`);
+  const res = await axiosInstance.get(
+    `/api/trips-plan/by-itinerary/${itineraryId}`,
+  );
   return handleApiResponse(res);
 };
 
@@ -85,4 +102,36 @@ export const updateTripPlanApi = async (
   );
 
   return handleApiResponse(res);
+};
+
+export const createCommentTripPlanApi = async (tripPlanId: string, data: { content: string }) => {
+  const response = await axiosInstance.post(
+    `/api/trips-plan/${tripPlanId}/comments`,
+    data,
+  );
+
+  return response.data.data;
+};
+
+export const getCommentTripPlanApi = async (tripPlanId: string) => {
+  const response = await axiosInstance.get(
+    `/api/trips-plan/${tripPlanId}/comments`,
+  );
+
+  return response.data.data;
+};
+
+export const deleteCommentTripPlanApi = async (tripPlanId: string, commentId: string) => {
+  await axiosInstance.delete(
+    `/api/trips-plan/${tripPlanId}/comments/${commentId}`,
+  );
+
+};
+
+export const updateCommentTripPlanApi = async (tripPlanId: string, commentId: string) => {
+  const response = await axiosInstance.delete(
+    `/api/trips-plan/${tripPlanId}/comments/${commentId}`,
+  );
+
+  return response.data.data;
 };

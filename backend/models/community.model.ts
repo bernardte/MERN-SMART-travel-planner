@@ -13,6 +13,7 @@ interface CommunityTravelGuide {
   postSavedByUser: Types.ObjectId[];
   privacy: "public" | "private";
   views: number;
+  viewsBy: Types.ObjectId[];
   itineraryId: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -44,7 +45,7 @@ const CommunityTravelGuideSchema = new mongoose.Schema<CommunityTravelGuide>(
     thumbnailImagePublicId: {
       type: String,
       required: true,
-      select: false
+      select: false,
     },
     tags: {
       type: [String],
@@ -75,6 +76,7 @@ const CommunityTravelGuideSchema = new mongoose.Schema<CommunityTravelGuide>(
       type: Number,
       default: 0,
     },
+    viewsBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     itineraryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TravelGuide",

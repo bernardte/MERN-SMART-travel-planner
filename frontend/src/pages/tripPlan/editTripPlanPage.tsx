@@ -853,9 +853,9 @@ const EditTripPlanPage = () => {
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {getRoutePolylines().map((poly, idx) => (
+            {/* {getRoutePolylines().map((poly, idx) => (
               <Polyline key={idx} positions={poly.positions} color={poly.color} weight={5} opacity={0.8} dashArray="8, 8" />
-            ))}
+            ))} */}
             {allMarkers.map((marker, idx) => {
               const color = marker.type === "route" ? CATEGORY_COLORS.route : (CATEGORY_COLORS[marker.category || "other"] ?? CATEGORY_COLORS.other);
               return (
