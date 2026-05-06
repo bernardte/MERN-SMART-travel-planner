@@ -48,6 +48,7 @@ import { LoadingState } from "@/layouts/components/loading/LoadingState";
 import { tripSchema } from "@/lib/zod/tripSchema";
 import { createTripPlanApi } from "@/api/trip.api";
 import useAuthStore from "@/stores/useAuthStore";
+import { fetchLocationImage } from "@/lib/helpers/pexels";
 
 // ─── Types (aligned to backend schema) ────────────────────────────────────────
 export interface ListItem {
@@ -68,6 +69,7 @@ export interface Place {
   category: "restaurant" | "attraction" | "cafe" | "viewpoint" | "other";
   address?: string;
   timeEstimate?: string;
+  locationImageUrl?: string;
 }
 
 export interface RouteStop {
@@ -225,22 +227,41 @@ function AddPlaceModal({
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selected, setSelected] = useState<NominatimResult | null>(null);
-
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<PlaceCategory>("attraction");
   const [timeEstimate, setTimeEstimate] = useState("");
+  const [placeImage, setPlaceImage] = useState<string | null>(null);
+  const [isFetchingImage, setIsFetchingImage] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const imageDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop";
+
+  // Fetch Pexels image when name changes (debounced 800ms)
+  const fetchImageForName = (placeName: string) => {
+    if (imageDebounceRef.current) clearTimeout(imageDebounceRef.current);
+    if (!placeName.trim()) {
+      setPlaceImage(null);
+      return;
+    }
+    imageDebounceRef.current = setTimeout(async () => {
+      setIsFetchingImage(true);
+      try {
+        const locationImageUrl = await fetchLocationImage(placeName);
+        setPlaceImage(locationImageUrl);
+      } finally {
+        setIsFetchingImage(false);
+      }
+    }, 800);
+  };
 
   const handleQueryChange = (val: string) => {
     setQuery(val);
     setSelected(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!val.trim()) {
-      setResults([]);
-      return;
-    }
+    if (!val.trim()) { setResults([]); return; }
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
@@ -255,20 +276,26 @@ function AddPlaceModal({
   const handleSelect = (r: NominatimResult) => {
     setSelected(r);
     setQuery(r.display_name);
-    setName(r.display_name.split(",")[0]);
+    const firstName = r.display_name.split(",")[0];
+    setName(firstName);
     setResults([]);
+    fetchImageForName(firstName); // auto-fetch image on location select
+  };
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    fetchImageForName(val);
+  };
+
+  const reset = () => {
+    setQuery(""); setResults([]); setSelected(null);
+    setName(""); setDescription(""); setCategory("attraction");
+    setTimeEstimate(""); setPlaceImage(null);
   };
 
   const handleSubmit = () => {
-    if (!selected) {
-      alert("Please search and select a location first.");
-      return;
-    }
-    if (!name.trim()) {
-      alert("Please enter a place name.");
-      return;
-    }
-
+    if (!selected) { alert("Please select a location first."); return; }
+    if (!name.trim()) { alert("Please enter a place name."); return; }
     const newPlace: Place = {
       id: `place_${Date.now()}_${Math.random()}`,
       order: 0,
@@ -279,249 +306,177 @@ function AddPlaceModal({
       category,
       address: selected.display_name,
       timeEstimate: timeEstimate || undefined,
+      locationImageUrl: placeImage || FALLBACK_IMAGE, 
     };
-
     onAdd(sectionId, newPlace);
     onClose();
-    setQuery("");
-    setResults([]);
-    setSelected(null);
-    setName("");
-    setDescription("");
-    setCategory("attraction");
-    setTimeEstimate("");
-  };
-
-  const handleClose = () => {
-    setQuery("");
-    setResults([]);
-    setSelected(null);
-    setName("");
-    setDescription("");
-    setCategory("attraction");
-    setTimeEstimate("");
-    onClose();
+    reset();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
-      style={{
-        backgroundColor: "rgba(0,0,0,0.6)",
-        backdropFilter: "blur(4px)",
-      }}
-    >
-      <div className="animate-in slide-in-from-bottom-5 w-full max-w-lg overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
-        {/* Header */}
-        <div className="to-cyan-500px-6 relative bg-gradient-to-br from-blue-500 py-5">
-          <div className="absolute top-0 right-0 opacity-10">
-            <MapPinned size={80} />
-          </div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+      <div className="w-full max-w-lg overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
+        <div className="relative bg-gradient-to-br from-blue-500 to-cyan-500 px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
                 <MapPin size={18} className="text-white" />
               </div>
-              <h2 className="text-lg font-semibold text-white">
-                Add New Place
-              </h2>
+              <h2 className="text-lg font-semibold text-white">Add New Place</h2>
             </div>
-            <button
-              onClick={handleClose}
-              className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
-            >
+            <button onClick={() => { reset(); onClose(); }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
               <X size={16} className="text-white" />
             </button>
           </div>
         </div>
 
         <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-6">
-          {/* Location search */}
+          {/* Search */}
           <div>
             <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-              <Search size={12} />
-              Search Location
+              <Search size={12} /> Search Location
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
-                {isSearching ? (
-                  <Loader2 size={16} className="animate-spin text-indigo-400" />
-                ) : (
-                  <Search size={16} className="text-gray-400" />
-                )}
+                {isSearching ? <Loader2 size={16} className="animate-spin text-indigo-400" />
+                  : <Search size={16} className="text-gray-400" />}
               </div>
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => handleQueryChange(e.target.value)}
-                placeholder="Search for a place, address, landmark…"
-                className="w-full rounded-xl border border-gray-200 py-3 pr-4 pl-11 text-sm transition-all focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
-              />
+              <input type="text" value={query} onChange={(e) => handleQueryChange(e.target.value)}
+                placeholder="Search for a place…"
+                className="w-full rounded-xl border border-gray-200 py-3 pr-4 pl-11 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none" />
               {selected && (
                 <div className="absolute top-1/2 right-4 -translate-y-1/2">
-                  <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                    ✓ Selected
-                  </span>
+                  <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">✓ Selected</span>
                 </div>
               )}
             </div>
-
-            {/* Results dropdown */}
             {results.length > 0 && (
-              <div className="animate-in slide-in-from-top-2 mt-2 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
+              <div className="mt-2 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
                 {results.map((r) => (
-                  <button
-                    key={r.place_id}
-                    onClick={() => handleSelect(r)}
-                    className="w-full border-b border-gray-50 px-4 py-3 text-left text-sm transition-all last:border-0 hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50"
-                  >
-                    <p className="font-medium text-gray-800">
-                      {r.display_name.split(",")[0]}
-                    </p>
-                    <p className="mt-0.5 text-xs text-gray-400">
-                      {r.display_name}
-                    </p>
+                  <button key={r.place_id} onClick={() => handleSelect(r)}
+                    className="w-full border-b border-gray-50 px-4 py-3 text-left text-sm last:border-0 hover:bg-blue-50">
+                    <p className="font-medium text-gray-800">{r.display_name.split(",")[0]}</p>
+                    <p className="mt-0.5 text-xs text-gray-400">{r.display_name}</p>
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Name */}
-          <div>
-            <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-              <Pen size={12} />
-              Place Name
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Eiffel Tower"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm transition-all focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
-            />
+          {/* Name (top) + Image Preview (bottom) */}
+          <div className="flex flex-col gap-3">
+            {/* Name */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                <Pen size={12} /> Place Name
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Eiffel Tower"
+                value={name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+              />
+            </div>
+
+            {/* Image preview */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                <Camera size={12} /> Preview
+              </label>
+              <div className="relative h-[160px] w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                {isFetchingImage ? (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Loader2 size={18} className="animate-spin text-indigo-400" />
+                  </div>
+                ) : placeImage ? (
+                  <img
+                    src={placeImage}
+                    alt="place preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <MapPin size={18} className="text-gray-300" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Category */}
           <div>
             <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-              <Star size={12} />
-              Category
+              <Star size={12} /> Category
             </label>
             <div className="grid grid-cols-5 gap-2">
-              {(
-                [
-                  "attraction",
-                  "restaurant",
-                  "cafe",
-                  "viewpoint",
-                  "other",
-                ] as PlaceCategory[]
-              ).map((cat) => {
+              {(["attraction", "restaurant", "cafe", "viewpoint", "other"] as PlaceCategory[]).map((cat) => {
                 const icons: Record<PlaceCategory, React.ReactNode> = {
-                  attraction: <Building2 size={14} />,
-                  restaurant: <UtensilsCrossed size={14} />,
-                  cafe: <CoffeeIcon size={14} />,
-                  viewpoint: <Mountain size={14} />,
-                  other: <MapPin size={14} />,
-                };
-                const labels: Record<PlaceCategory, string> = {
-                  attraction: "Attraction",
-                  restaurant: "Restaurant",
-                  cafe: "Cafe",
-                  viewpoint: "Viewpoint",
-                  other: "Other",
+                  attraction: <Building2 size={14} />, restaurant: <UtensilsCrossed size={14} />,
+                  cafe: <CoffeeIcon size={14} />, viewpoint: <Mountain size={14} />, other: <MapPin size={14} />,
                 };
                 return (
-                  <button
-                    key={cat}
-                    onClick={() => setCategory(cat)}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-all ${
-                      category === cat
-                        ? `border-blue-400 bg-gradient-to-br ${CATEGORY_GRADIENTS[cat]} scale-105 text-white shadow-md`
-                        : "border-gray-200 text-gray-600 hover:border-indigo-200 hover:bg-indigo-50"
-                    }`}
-                  >
+                  <button key={cat} onClick={() => setCategory(cat)}
+                    className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-all ${category === cat
+                      ? `border-blue-400 bg-gradient-to-br ${CATEGORY_GRADIENTS[cat]} scale-105 text-white shadow-md`
+                      : "border-gray-200 text-gray-600 hover:border-indigo-200 hover:bg-indigo-50"}`}>
                     {icons[cat]}
-                    <span className="text-[11px] capitalize">
-                      {labels[cat]}
-                    </span>
+                    <span className="text-[11px] capitalize">{cat}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Description & time */}
+          {/* Description & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                <Text size={12} />
-                Description
+                <Text size={12} /> Description
               </label>
-              <textarea
-                placeholder="Optional notes…"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm transition-all focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
-                rows={2}
-              />
+              <textarea placeholder="Optional notes…" value={description}
+                onChange={(e) => setDescription(e.target.value)} rows={2}
+                className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none" />
             </div>
             <div>
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                <Clock size={12} />
-                Time Estimate
+                <Clock size={12} /> Time Estimate
               </label>
-              <input
-                type="text"
-                placeholder="e.g., 1–2 hours"
-                value={timeEstimate}
+              <input type="text" placeholder="e.g., 1–2 hours" value={timeEstimate}
                 onChange={(e) => setTimeEstimate(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm transition-all focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
-              />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none" />
             </div>
           </div>
 
           {/* Lat/Lng preview */}
           {selected && (
-            <div className="rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 p-4">
+            <div className="rounded-xl bg-gray-50 p-4">
               <div className="flex gap-4">
                 <div className="flex-1 text-center">
-                  <p className="mb-1 text-xs font-medium text-gray-500">
-                    Latitude
-                  </p>
-                  <p className="font-mono text-sm font-semibold text-gray-700">
-                    {parseFloat(selected.lat).toFixed(6)}
-                  </p>
+                  <p className="mb-1 text-xs font-medium text-gray-500">Latitude</p>
+                  <p className="font-mono text-sm font-semibold text-gray-700">{parseFloat(selected.lat).toFixed(6)}</p>
                 </div>
                 <div className="w-px bg-gray-300" />
                 <div className="flex-1 text-center">
-                  <p className="mb-1 text-xs font-medium text-gray-500">
-                    Longitude
-                  </p>
-                  <p className="font-mono text-sm font-semibold text-gray-700">
-                    {parseFloat(selected.lon).toFixed(6)}
-                  </p>
+                  <p className="mb-1 text-xs font-medium text-gray-500">Longitude</p>
+                  <p className="font-mono text-sm font-semibold text-gray-700">{parseFloat(selected.lon).toFixed(6)}</p>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
-          <button
-            onClick={handleClose}
-            className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 transition-all hover:bg-gray-50 hover:shadow-sm"
-          >
+          <button onClick={() => { reset(); onClose(); }}
+            className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
             Cancel
           </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:scale-[1.02] hover:shadow-lg"
-          >
+          <button onClick={handleSubmit}
+            className="flex-1 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg">
             Add Place
           </button>
         </div>
@@ -709,6 +664,7 @@ const TripPlanPage = () => {
         },
       );
 
+      // initialize 
       setSections((prev) => {
         const nonDaySections = prev.filter((s) => s.type !== "day");
         return [...nonDaySections, ...tripDaySections];
@@ -736,6 +692,7 @@ const TripPlanPage = () => {
       lng: number;
       title: string;
       type: string;
+      locationImageUrl?: string,
       category?: string;
       note?: string;
     }> = [];
@@ -755,6 +712,7 @@ const TripPlanPage = () => {
             lat: place.lat,
             lng: place.lng,
             title: place.name,
+            locationImageUrl: place.locationImageUrl,
             type: "place",
             category: place.category,
           }),
@@ -860,12 +818,15 @@ const TripPlanPage = () => {
       ),
     );
 
+    // any new place added will trigger again this function
   const addPlace = (sectionId: string, place: Place) => {
+    console.log("place image: ", place.locationImageUrl);
+    console.log("session: ", sections);
     setSections((prev) =>
       prev.map((s) => {
         if (s.id === sectionId && s.type === "day") {
           const order = s.places.length + 1;
-          return { ...s, places: [...s.places, { ...place, order }] };
+          return { ...s, places: [...s.places, { ...place, order,locationImageUrl: place.locationImageUrl, }] };
         }
         return s;
       }),
@@ -917,6 +878,7 @@ const TripPlanPage = () => {
     setIsSaving(true);
     try {
       let result, guideData;
+      
 
       if (imageFile) {
         result = tripSchema.safeParse({
@@ -1225,43 +1187,35 @@ const TripPlanPage = () => {
                             </p>
                           </div>
                           {section.places.map((place) => (
-                            <div
-                              key={place.id}
-                              className="group/place flex items-start gap-3"
-                            >
-                              <div className="mt-0.5 flex-shrink-0">
-                                {getCategoryIcon(place.category)}
+                            <div key={place.id} className="group/place flex items-start gap-3">
+                              {/* Place image thumbnail */}
+                              <div className="h-28 w-34 flex-shrink-0 overflow-hidden rounded-lg border border-gray-100">
+                              <img
+                                  src={place.locationImageUrl || "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop"}
+                                  alt={place.name}
+                                  className="h-full w-full object-cover"
+                              />
                               </div>
+                              <div className="mt-0.5 flex-shrink-0">{getCategoryIcon(place.category)}</div>
                               <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-gray-800">
-                                    {place.name}
-                                  </span>
+                              <div className="flex items-center gap-2">
+                                  <span className="text-lg font-medium text-gray-800">{place.name}</span>
                                   {place.timeEstimate && (
-                                    <span className="flex items-center gap-1 text-[10px] text-gray-400">
-                                      <Clock size={10} />
-                                      {place.timeEstimate}
-                                    </span>
+                                  <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                                      <Clock size={10} /> {place.timeEstimate}
+                                  </span>
                                   )}
-                                </div>
-                                {place.description && (
-                                  <p className="text-xs text-gray-500">
-                                    {place.description}
-                                  </p>
-                                )}
                               </div>
-                              <button
-                                onClick={() =>
-                                  deletePlace(section.id, place.id)
-                                }
-                                className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full opacity-0 transition-all group-hover/place:opacity-100 hover:bg-red-100"
-                              >
-                                <X size={11} className="text-red-400" />
+                              {place.description && <p className="text-xs text-gray-500">{place.description}</p>}
+                              </div>
+                              <button onClick={() => deletePlace(section.id, place.id)}
+                              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full opacity-0 transition-all group-hover/place:opacity-100 hover:bg-red-100">
+                              <X size={11} className="text-red-400" />
                               </button>
-                            </div>
+                          </div>
                           ))}
-                        </div>
-                      )}
+                      </div>
+                    )}
 
                       {/* Notes */}
                       <div className="relative">

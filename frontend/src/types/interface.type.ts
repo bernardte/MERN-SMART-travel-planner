@@ -56,6 +56,7 @@ export interface Place {
   category: "restaurant" | "attraction" | "cafe" | "viewpoint" | "other";
   address?: string;
   timeEstimate?: string;
+  locationImageUrl?: string;
 }
 
 export interface RouteStop {

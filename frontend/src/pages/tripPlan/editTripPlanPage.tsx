@@ -17,6 +17,7 @@ import useAuthStore from "@/stores/useAuthStore";
 import type {
   Section, DaySection, TipsSection, ListItem, Place, RouteStop,
 } from "@/pages/tripPlan/TripPlanPage";
+import { fetchLocationImage } from "@/lib/helpers/pexels";
 
 // ─── Leaflet setup ─────────────────────────────────────────────────────────────
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -78,18 +79,25 @@ type PlaceCategory = Place["category"];
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
-    case "restaurant": return <UtensilsCrossed size={14} className="text-red-500" />;
-    case "cafe": return <CoffeeIcon size={14} className="text-amber-500" />;
-    case "viewpoint": return <Camera size={14} className="text-emerald-500" />;
-    case "attraction": return <Landmark size={14} className="text-purple-500" />;
-    default: return <MapPin size={14} className="text-gray-500" />;
+    case "restaurant": return <UtensilsCrossed size={24} className="text-red-500" />;
+    case "cafe": return <CoffeeIcon size={24} className="text-amber-500" />;
+    case "viewpoint": return <Camera size={24} className="text-emerald-500" />;
+    case "attraction": return <Landmark size={24} className="text-purple-500" />;
+    default: return <MapPin size={24} className="text-gray-500" />;
   }
 };
 
 // ─── Add Place Modal ──────────────────────────────────────────────────────────
-function AddPlaceModal({ isOpen, onClose, onAdd, sectionId }: {
-  isOpen: boolean; onClose: () => void;
-  onAdd: (sectionId: string, place: Place) => void; sectionId: string;
+function AddPlaceModal({
+  isOpen,
+  onClose,
+  onAdd,
+  sectionId,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onAdd: (sectionId: string, place: Place) => void;
+  sectionId: string;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<NominatimResult[]>([]);
@@ -99,39 +107,87 @@ function AddPlaceModal({ isOpen, onClose, onAdd, sectionId }: {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<PlaceCategory>("attraction");
   const [timeEstimate, setTimeEstimate] = useState("");
+  const [placeImage, setPlaceImage] = useState<string | null>(null);
+  const [isFetchingImage, setIsFetchingImage] = useState(false);
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const imageDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop";
+
+  // Fetch Pexels image when name changes (debounced 800ms)
+  const fetchImageForName = (placeName: string) => {
+    if (imageDebounceRef.current) clearTimeout(imageDebounceRef.current);
+    if (!placeName.trim()) {
+      setPlaceImage(null);
+      return;
+    }
+    imageDebounceRef.current = setTimeout(async () => {
+      setIsFetchingImage(true);
+      try {
+        const locationImageUrl = await fetchLocationImage(placeName);
+        console.log("location image: ", locationImageUrl);
+        setPlaceImage(locationImageUrl);
+      } finally {
+        setIsFetchingImage(false);
+      }
+    }, 800);
+  };
 
   const handleQueryChange = (val: string) => {
-    setQuery(val); setSelected(null);
+    setQuery(val);
+    setSelected(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!val.trim()) { setResults([]); return; }
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
-      try { const data = await searchPlaces(val); setResults(data); }
-      finally { setIsSearching(false); }
+      try {
+        const data = await searchPlaces(val);
+        setResults(data);
+      } finally {
+        setIsSearching(false);
+      }
     }, 500);
   };
 
   const handleSelect = (r: NominatimResult) => {
-    setSelected(r); setQuery(r.display_name);
-    setName(r.display_name.split(",")[0]); setResults([]);
+    setSelected(r);
+    setQuery(r.display_name);
+    const firstName = r.display_name.split(",")[0];
+    setName(firstName);
+    setResults([]);
+    fetchImageForName(firstName); // auto-fetch image on location select
+  };
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    fetchImageForName(val);
   };
 
   const reset = () => {
     setQuery(""); setResults([]); setSelected(null);
-    setName(""); setDescription(""); setCategory("attraction"); setTimeEstimate("");
+    setName(""); setDescription(""); setCategory("attraction");
+    setTimeEstimate(""); setPlaceImage(null);
   };
 
   const handleSubmit = () => {
     if (!selected) { alert("Please select a location first."); return; }
     if (!name.trim()) { alert("Please enter a place name."); return; }
     const newPlace: Place = {
-      id: `place_${Date.now()}_${Math.random()}`, order: 0, name: name.trim(),
-      description: description || undefined, lat: parseFloat(selected.lat),
-      lng: parseFloat(selected.lon), category, address: selected.display_name,
+      id: `place_${Date.now()}_${Math.random()}`,
+      order: 0,
+      name: name.trim(),
+      description: description || undefined,
+      lat: parseFloat(selected.lat),
+      lng: parseFloat(selected.lon),
+      category,
+      address: selected.display_name,
       timeEstimate: timeEstimate || undefined,
+      locationImageUrl: placeImage || FALLBACK_IMAGE, 
     };
-    onAdd(sectionId, newPlace); onClose(); reset();
+    onAdd(sectionId, newPlace);
+    onClose();
+    reset();
   };
 
   if (!isOpen) return null;
@@ -154,6 +210,7 @@ function AddPlaceModal({ isOpen, onClose, onAdd, sectionId }: {
             </button>
           </div>
         </div>
+
         <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-6">
           {/* Search */}
           <div>
@@ -186,15 +243,48 @@ function AddPlaceModal({ isOpen, onClose, onAdd, sectionId }: {
               </div>
             )}
           </div>
-          {/* Name */}
-          <div>
-            <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-              <Pen size={12} /> Place Name
-            </label>
-            <input type="text" placeholder="e.g., Eiffel Tower" value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none" />
-          </div>
+
+          {/* Name (top) + Image Preview (bottom) */}
+            <div className="flex flex-col gap-3">
+            {/* Name */}
+            <div>
+                <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                <Pen size={12} /> Place Name
+                </label>
+                <input
+                type="text"
+                placeholder="e.g., Eiffel Tower"
+                value={name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                />
+            </div>
+
+            {/* Image preview */}
+            <div>
+                <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                <Camera size={12} /> Preview
+                </label>
+                <div className="relative h-[160px] w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                {isFetchingImage ? (
+                    <div className="flex h-full w-full items-center justify-center">
+                    <Loader2 size={18} className="animate-spin text-indigo-400" />
+                    </div>
+                ) : placeImage ? (
+                    <img
+                    src={placeImage}
+                    alt="place preview"
+                    className="h-full w-full object-cover"
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                    <MapPin size={18} className="text-gray-300" />
+                    </div>
+                )}
+                </div>
+            </div>
+            </div>
+
           {/* Category */}
           <div>
             <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
@@ -218,6 +308,7 @@ function AddPlaceModal({ isOpen, onClose, onAdd, sectionId }: {
               })}
             </div>
           </div>
+
           {/* Description & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -237,6 +328,8 @@ function AddPlaceModal({ isOpen, onClose, onAdd, sectionId }: {
                 className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none" />
             </div>
           </div>
+
+          {/* Lat/Lng preview */}
           {selected && (
             <div className="rounded-xl bg-gray-50 p-4">
               <div className="flex gap-4">
@@ -253,6 +346,7 @@ function AddPlaceModal({ isOpen, onClose, onAdd, sectionId }: {
             </div>
           )}
         </div>
+
         <div className="flex gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
           <button onClick={() => { reset(); onClose(); }}
             className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
@@ -461,6 +555,7 @@ const EditTripPlanPage = () => {
   // ── Save (UPDATE) ──
   const saveGuideToBackend = async () => {
     if (!tripPlanId) return;
+    console.log("sections: ", sections);
     setIsSaving(true);
     try {
       await updateTripPlanApi(tripPlanId, {
@@ -631,26 +726,36 @@ const EditTripPlanPage = () => {
                             <MapPinned size={14} className="text-purple-600" />
                             <p className="text-[10px] font-bold tracking-widest text-purple-600 uppercase">Added Places</p>
                           </div>
+
+
                           {section.places.map((place) => (
                             <div key={place.id} className="group/place flex items-start gap-3">
-                              <div className="mt-0.5 flex-shrink-0">{getCategoryIcon(place.category)}</div>
-                              <div className="min-w-0 flex-1">
+                                {/* Place image thumbnail */}
+                                <div className="h-28 w-34 flex-shrink-0 overflow-hidden rounded-lg border border-gray-100">
+                                <img
+                                    src={place.locationImageUrl || "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop"}
+                                    alt={place.name}
+                                    className="h-full w-full object-cover"
+                                />
+                                </div>
+                                <div className="mt-0.5 flex-shrink-0">{getCategoryIcon(place.category)}</div>
+                                <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-gray-800">{place.name}</span>
-                                  {place.timeEstimate && (
+                                    <span className="text-lg font-medium text-gray-800">{place.name}</span>
+                                    {place.timeEstimate && (
                                     <span className="flex items-center gap-1 text-[10px] text-gray-400">
-                                      <Clock size={10} /> {place.timeEstimate}
+                                        <Clock size={10} /> {place.timeEstimate}
                                     </span>
-                                  )}
+                                    )}
                                 </div>
                                 {place.description && <p className="text-xs text-gray-500">{place.description}</p>}
-                              </div>
-                              <button onClick={() => deletePlace(section.id, place.id)}
+                                </div>
+                                <button onClick={() => deletePlace(section.id, place.id)}
                                 className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full opacity-0 transition-all group-hover/place:opacity-100 hover:bg-red-100">
                                 <X size={11} className="text-red-400" />
-                              </button>
+                                </button>
                             </div>
-                          ))}
+                            ))}
                         </div>
                       )}
 

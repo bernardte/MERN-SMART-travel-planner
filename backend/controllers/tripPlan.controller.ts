@@ -14,6 +14,7 @@ const createTrip = async (
   const authorIntro = req.body.authorIntro as string;
   const tripId = req.body.tripId as string;
   const sections = JSON.parse(req.body.sections as string);
+  console.log("sections: ", sections);
   const user = req.user;
 
   if (!title || !title.trim() || !sections || sections.length === 0) {

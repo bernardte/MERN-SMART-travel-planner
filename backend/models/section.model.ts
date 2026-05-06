@@ -1,4 +1,5 @@
 import mongoose, { type ObjectId } from "mongoose";
+import { string } from "zod";
 
 enum ListItemType {
   text = "text",
@@ -49,6 +50,7 @@ export interface IPlace {
   category: CategoryItem;
   address?: string;
   timeEstimate?: string;
+  locationImageUrl?: string;
 }
 
 export const placeSchema = new mongoose.Schema<IPlace>(
@@ -60,13 +62,14 @@ export const placeSchema = new mongoose.Schema<IPlace>(
     description: String,
     lat: Number,
     lng: Number,
+    locationImageUrl: string,
     category: {
       type: String,
       enum: ["restaurant", "attraction", "cafe", "viewpoint", "other"],
     },
     address: String,
   },
-  { _id: false },
+  { _id: false }, 
 );
 
 export interface IRouteStop {
