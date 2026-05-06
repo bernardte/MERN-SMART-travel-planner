@@ -49,6 +49,8 @@ import { tripSchema } from "@/lib/zod/tripSchema";
 import { createTripPlanApi } from "@/api/trip.api";
 import useAuthStore from "@/stores/useAuthStore";
 import { fetchLocationImage } from "@/lib/helpers/pexels";
+import { LoadingDots } from "@/components/ui/loading";
+import { Button } from "@/components/ui/button";
 
 // ─── Types (aligned to backend schema) ────────────────────────────────────────
 export interface ListItem {
@@ -237,7 +239,8 @@ function AddPlaceModal({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const imageDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop";
+  const FALLBACK_IMAGE =
+    "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop";
 
   // Fetch Pexels image when name changes (debounced 800ms)
   const fetchImageForName = (placeName: string) => {
@@ -261,7 +264,10 @@ function AddPlaceModal({
     setQuery(val);
     setSelected(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!val.trim()) { setResults([]); return; }
+    if (!val.trim()) {
+      setResults([]);
+      return;
+    }
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
@@ -288,25 +294,38 @@ function AddPlaceModal({
   };
 
   const reset = () => {
-    setQuery(""); setResults([]); setSelected(null);
-    setName(""); setDescription(""); setCategory("attraction");
-    setTimeEstimate(""); setPlaceImage(null);
+    setQuery("");
+    setResults([]);
+    setSelected(null);
+    setName("");
+    setDescription("");
+    setCategory("attraction");
+    setTimeEstimate("");
+    setPlaceImage(null);
   };
 
-  const handleSubmit = () => {
-    if (!selected) { alert("Please select a location first."); return; }
-    if (!name.trim()) { alert("Please enter a place name."); return; }
+  const handleSubmit = async () => {
+    if (!selected) {
+      alert("Please select a location first.");
+      return;
+    }
+    if (!name.trim()) {
+      alert("Please enter a place name.");
+      return;
+    }
+
+    const image = await fetchLocationImage(name.trim());
     const newPlace: Place = {
-      id: `place_${Date.now()}_${Math.random()}`,
+      id: `place_${Date.now()}`,
       order: 0,
-      name: name.trim(),
-      description: description || undefined,
+      name,
+      description,
       lat: parseFloat(selected.lat),
       lng: parseFloat(selected.lon),
       category,
       address: selected.display_name,
-      timeEstimate: timeEstimate || undefined,
-      locationImageUrl: placeImage || FALLBACK_IMAGE, 
+      timeEstimate,
+      locationImageUrl: image || FALLBACK_IMAGE,
     };
     onAdd(sectionId, newPlace);
     onClose();
@@ -316,19 +335,31 @@ function AddPlaceModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
-      style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{
+        backgroundColor: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(4px)",
+      }}
+    >
       <div className="w-full max-w-lg overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
         <div className="relative bg-gradient-to-br from-blue-500 to-cyan-500 px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 mx-3 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
+              <div className="mx-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
                 <MapPin size={18} className="text-white" />
               </div>
-              <h2 className="text-lg font-semibold text-white">Add New Place</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Add New Place
+              </h2>
             </div>
-            <button onClick={() => { reset(); onClose(); }}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+            <button
+              onClick={() => {
+                reset();
+                onClose();
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+            >
               <X size={16} className="text-white" />
             </button>
           </div>
@@ -342,25 +373,41 @@ function AddPlaceModal({
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
-                {isSearching ? <Loader2 size={16} className="animate-spin text-indigo-400" />
-                  : <Search size={16} className="text-gray-400" />}
+                {isSearching ? (
+                  <Loader2 size={16} className="animate-spin text-indigo-400" />
+                ) : (
+                  <Search size={16} className="text-gray-400" />
+                )}
               </div>
-              <input type="text" value={query} onChange={(e) => handleQueryChange(e.target.value)}
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => handleQueryChange(e.target.value)}
                 placeholder="Search for a place…"
-                className="w-full rounded-xl border border-gray-200 py-3 pr-4 pl-11 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none" />
+                className="w-full rounded-xl border border-gray-200 py-3 pr-4 pl-11 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+              />
               {selected && (
                 <div className="absolute top-1/2 right-4 -translate-y-1/2">
-                  <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">✓ Selected</span>
+                  <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                    ✓ Selected
+                  </span>
                 </div>
               )}
             </div>
             {results.length > 0 && (
               <div className="mt-2 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
                 {results.map((r) => (
-                  <button key={r.place_id} onClick={() => handleSelect(r)}
-                    className="w-full border-b border-gray-50 px-4 py-3 text-left text-sm last:border-0 hover:bg-blue-50">
-                    <p className="font-medium text-gray-800">{r.display_name.split(",")[0]}</p>
-                    <p className="mt-0.5 text-xs text-gray-400">{r.display_name}</p>
+                  <button
+                    key={r.place_id}
+                    onClick={() => handleSelect(r)}
+                    className="w-full border-b border-gray-50 px-4 py-3 text-left text-sm last:border-0 hover:bg-blue-50"
+                  >
+                    <p className="font-medium text-gray-800">
+                      {r.display_name.split(",")[0]}
+                    </p>
+                    <p className="mt-0.5 text-xs text-gray-400">
+                      {r.display_name}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -388,10 +435,10 @@ function AddPlaceModal({
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
                 <Camera size={12} /> Preview
               </label>
-              <div className="relative h-[160px] w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
                 {isFetchingImage ? (
                   <div className="flex h-full w-full items-center justify-center">
-                    <Loader2 size={18} className="animate-spin text-indigo-400" />
+                    <LoadingDots className="text-blue-400" />
                   </div>
                 ) : placeImage ? (
                   <img
@@ -414,16 +461,32 @@ function AddPlaceModal({
               <Star size={12} /> Category
             </label>
             <div className="grid grid-cols-5 gap-2">
-              {(["attraction", "restaurant", "cafe", "viewpoint", "other"] as PlaceCategory[]).map((cat) => {
+              {(
+                [
+                  "attraction",
+                  "restaurant",
+                  "cafe",
+                  "viewpoint",
+                  "other",
+                ] as PlaceCategory[]
+              ).map((cat) => {
                 const icons: Record<PlaceCategory, React.ReactNode> = {
-                  attraction: <Building2 size={14} />, restaurant: <UtensilsCrossed size={14} />,
-                  cafe: <CoffeeIcon size={14} />, viewpoint: <Mountain size={14} />, other: <MapPin size={14} />,
+                  attraction: <Building2 size={14} />,
+                  restaurant: <UtensilsCrossed size={14} />,
+                  cafe: <CoffeeIcon size={14} />,
+                  viewpoint: <Mountain size={14} />,
+                  other: <MapPin size={14} />,
                 };
                 return (
-                  <button key={cat} onClick={() => setCategory(cat)}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-all ${category === cat
-                      ? `border-blue-400 bg-gradient-to-br ${CATEGORY_GRADIENTS[cat]} scale-105 text-white shadow-md`
-                      : "border-gray-200 text-gray-600 hover:border-indigo-200 hover:bg-indigo-50"}`}>
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(cat)}
+                    className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-all ${
+                      category === cat
+                        ? `border-blue-400 bg-gradient-to-br ${CATEGORY_GRADIENTS[cat]} scale-105 text-white shadow-md`
+                        : "border-gray-200 text-gray-600 hover:border-indigo-200 hover:bg-indigo-50"
+                    }`}
+                  >
                     {icons[cat]}
                     <span className="text-[11px] capitalize">{cat}</span>
                   </button>
@@ -438,17 +501,25 @@ function AddPlaceModal({
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
                 <Text size={12} /> Description
               </label>
-              <textarea placeholder="Optional notes…" value={description}
-                onChange={(e) => setDescription(e.target.value)} rows={2}
-                className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none" />
+              <textarea
+                placeholder="Optional notes…"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+              />
             </div>
             <div>
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
                 <Clock size={12} /> Time Estimate
               </label>
-              <input type="text" placeholder="e.g., 1–2 hours" value={timeEstimate}
+              <input
+                type="text"
+                placeholder="e.g., 1–2 hours"
+                value={timeEstimate}
                 onChange={(e) => setTimeEstimate(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none" />
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+              />
             </div>
           </div>
 
@@ -457,13 +528,21 @@ function AddPlaceModal({
             <div className="rounded-xl bg-gray-50 p-4">
               <div className="flex gap-4">
                 <div className="flex-1 text-center">
-                  <p className="mb-1 text-xs font-medium text-gray-500">Latitude</p>
-                  <p className="font-mono text-sm font-semibold text-gray-700">{parseFloat(selected.lat).toFixed(6)}</p>
+                  <p className="mb-1 text-xs font-medium text-gray-500">
+                    Latitude
+                  </p>
+                  <p className="font-mono text-sm font-semibold text-gray-700">
+                    {parseFloat(selected.lat).toFixed(6)}
+                  </p>
                 </div>
                 <div className="w-px bg-gray-300" />
                 <div className="flex-1 text-center">
-                  <p className="mb-1 text-xs font-medium text-gray-500">Longitude</p>
-                  <p className="font-mono text-sm font-semibold text-gray-700">{parseFloat(selected.lon).toFixed(6)}</p>
+                  <p className="mb-1 text-xs font-medium text-gray-500">
+                    Longitude
+                  </p>
+                  <p className="font-mono text-sm font-semibold text-gray-700">
+                    {parseFloat(selected.lon).toFixed(6)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -471,12 +550,19 @@ function AddPlaceModal({
         </div>
 
         <div className="flex gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
-          <button onClick={() => { reset(); onClose(); }}
-            className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
+          <button
+            onClick={() => {
+              reset();
+              onClose();
+            }}
+            className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
+          >
             Cancel
           </button>
-          <button onClick={handleSubmit}
-            className="flex-1 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg">
+          <button
+            onClick={handleSubmit}
+            className="flex-1 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg"
+          >
             Add Place
           </button>
         </div>
@@ -580,6 +666,8 @@ const getCategoryIcon = (category: string) => {
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 const TripPlanPage = () => {
+  const FALLBACK_IMAGE =
+    "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop";
   const [guideTitle, setGuideTitle] = useState("Ultimate Travel Guide");
   const [authorIntro, setAuthorIntro] = useState("");
   const { tripId } = useParams();
@@ -624,6 +712,7 @@ const TripPlanPage = () => {
   ]);
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -664,7 +753,7 @@ const TripPlanPage = () => {
         },
       );
 
-      // initialize 
+      // initialize
       setSections((prev) => {
         const nonDaySections = prev.filter((s) => s.type !== "day");
         return [...nonDaySections, ...tripDaySections];
@@ -692,9 +781,13 @@ const TripPlanPage = () => {
       lng: number;
       title: string;
       type: string;
-      locationImageUrl?: string,
+      locationImageUrl?: string;
       category?: string;
       note?: string;
+      name?: string;
+      description?: string;
+      timeEstimate?: string;
+      address?: string;
     }> = [];
     sections.forEach((section) => {
       if (section.type === "day" && section.isOpen) {
@@ -712,7 +805,11 @@ const TripPlanPage = () => {
             lat: place.lat,
             lng: place.lng,
             title: place.name,
+            name: place.name,
+            address: place.address,
             locationImageUrl: place.locationImageUrl,
+            timeEstimate: place.timeEstimate,
+            description: place.description,
             type: "place",
             category: place.category,
           }),
@@ -818,7 +915,7 @@ const TripPlanPage = () => {
       ),
     );
 
-    // any new place added will trigger again this function
+  // any new place added will trigger again this function
   const addPlace = (sectionId: string, place: Place) => {
     console.log("place image: ", place.locationImageUrl);
     console.log("session: ", sections);
@@ -826,7 +923,13 @@ const TripPlanPage = () => {
       prev.map((s) => {
         if (s.id === sectionId && s.type === "day") {
           const order = s.places.length + 1;
-          return { ...s, places: [...s.places, { ...place, order,locationImageUrl: place.locationImageUrl, }] };
+          return {
+            ...s,
+            places: [
+              ...s.places,
+              { ...place, order, locationImageUrl: place.locationImageUrl },
+            ],
+          };
         }
         return s;
       }),
@@ -878,7 +981,6 @@ const TripPlanPage = () => {
     setIsSaving(true);
     try {
       let result, guideData;
-      
 
       if (imageFile) {
         result = tripSchema.safeParse({
@@ -903,7 +1005,7 @@ const TripPlanPage = () => {
         return;
       }
 
-      if(imageFile){
+      if (imageFile) {
         guideData = {
           title: guideTitle,
           authorIntro,
@@ -911,7 +1013,7 @@ const TripPlanPage = () => {
           tripId,
           thumbnailImage: imageFile,
         };
-      }else{
+      } else {
         guideData = {
           title: guideTitle,
           authorIntro,
@@ -1042,7 +1144,6 @@ const TripPlanPage = () => {
         {/* Author intro */}
         <div className="px-8 pt-6">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-5 shadow-sm">
-
             <Award
               size={18}
               className="absolute top-4 right-4 text-indigo-300"
@@ -1062,7 +1163,7 @@ const TripPlanPage = () => {
         </div>
 
         {/* Sections */}
-        <div className="flex flex-col gap-5 px-8 py-6 pb-32">
+        <div className="flex flex-col gap-5 px-8 py-6 pb-5">
           {sections.map((section, idx) => (
             <div
               key={section.id}
@@ -1178,44 +1279,98 @@ const TripPlanPage = () => {
                       )}
 
                       {/* Places */}
-                      {section.places.length > 0 && (
-                        <div className="space-y-2 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 p-4">
-                          <div className="mb-3 flex items-center gap-2">
-                            <MapPinned size={14} className="text-purple-600" />
-                            <p className="text-[10px] font-bold tracking-widest text-purple-600 uppercase">
-                              Added Places
-                            </p>
+                      {section.places.map((place) => (
+                        <div
+                          key={place.id}
+                          className="group/place relative flex items-start gap-5 rounded-2xl bg-white/60 p-4 backdrop-blur-sm transition-all duration-300 hover:bg-white/80 hover:shadow-lg"
+                        >
+                          {/* image container*/}
+                          <div className="relative h-35 w-35 flex-shrink-0 overflow-hidden rounded-2xl shadow-md transition-all duration-500 group-hover/place:scale-[1.02] group-hover/place:shadow-xl">
+                            {/* Gradient border halo */}
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 via-transparent to-black/10 opacity-0 transition-opacity duration-500 group-hover/place:opacity-100" />
+
+                            <img
+                              src={
+                                place.locationImageUrl ||
+                                "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=500&h=500&fit=crop"
+                              }
+                              alt={place.name}
+                              className="h-full w-full object-cover transition-transform duration-700 group-hover/place:scale-110"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=500&h=500&fit=crop";
+                              }}
+                            />
+
+                            {/*Floating mask + magnifying glass icon*/}
+                            <div
+                              onClick={() => {
+                                setSelectedImage(
+                                  place.locationImageUrl ?? FALLBACK_IMAGE,
+                                );
+                              }}
+                              className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/40 via-black/0 to-transparent opacity-0 transition-all duration-400 group-hover/place:opacity-100"
+                            >
+                              <div className="rounded-full bg-white/30 p-1.5 backdrop-blur-sm">
+                                <Eye
+                                  size={16}
+                                  className="text-white drop-shadow-md"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Category badges - floating at the top of the image*/}
+                            <div className="absolute bottom-2 left-2 rounded-full bg-black/50 px-2 py-0.5 backdrop-blur-sm">
+                              <div className="flex items-center gap-1">
+                                {getCategoryIcon(place.category)}
+                                <span className="text-[9px] font-medium text-white capitalize">
+                                  {place.category}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          {section.places.map((place) => (
-                            <div key={place.id} className="group/place flex items-start gap-3">
-                              {/* Place image thumbnail */}
-                              <div className="h-28 w-34 flex-shrink-0 overflow-hidden rounded-lg border border-gray-100">
-                              <img
-                                  src={place.locationImageUrl || "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop"}
-                                  alt={place.name}
-                                  className="h-full w-full object-cover"
-                              />
+
+                          {/*content area*/}
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-1">
+                              <h4 className="truncate text-base font-bold text-gray-800 transition-colors group-hover/place:text-indigo-700">
+                                {place.name}
+                              </h4>
+                              {place.timeEstimate && (
+                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-600 shadow-sm">
+                                  <Clock size={10} />
+                                  {place.timeEstimate}
+                                </span>
+                              )}
+                            </div>
+
+                            {place.description && (
+                              <p className="line-clamp-2 text-xs leading-relaxed text-gray-500">
+                                {place.description}
+                              </p>
+                            )}
+
+                            {/* Address tips */}
+                            {place.address && (
+                              <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                                <MapPin size={10} />
+                                <span className="truncate">
+                                  {place.address.split(",")[0]}
+                                </span>
                               </div>
-                              <div className="mt-0.5 flex-shrink-0">{getCategoryIcon(place.category)}</div>
-                              <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                  <span className="text-lg font-medium text-gray-800">{place.name}</span>
-                                  {place.timeEstimate && (
-                                  <span className="flex items-center gap-1 text-[10px] text-gray-400">
-                                      <Clock size={10} /> {place.timeEstimate}
-                                  </span>
-                                  )}
-                              </div>
-                              {place.description && <p className="text-xs text-gray-500">{place.description}</p>}
-                              </div>
-                              <button onClick={() => deletePlace(section.id, place.id)}
-                              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full opacity-0 transition-all group-hover/place:opacity-100 hover:bg-red-100">
-                              <X size={11} className="text-red-400" />
-                              </button>
+                            )}
                           </div>
-                          ))}
-                      </div>
-                    )}
+
+                          {/* deletePlace */}
+                          <button
+                            onClick={() => deletePlace(section.id, place.id)}
+                            className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/80 text-gray-400 opacity-0 shadow-sm backdrop-blur-sm transition-all duration-200 group-hover/place:opacity-100 hover:bg-red-50 hover:text-red-500 hover:shadow-md"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ))}
 
                       {/* Notes */}
                       <div className="relative">
@@ -1357,13 +1512,12 @@ const TripPlanPage = () => {
             )}
           </button>
         </div>
-
         {/* Sticky footer actions */}
         <div className="sticky right-0 bottom-0 left-0 z-10 flex gap-3 border-t border-gray-100 bg-white/95 px-8 py-5 shadow-lg backdrop-blur-lg">
           <button
             onClick={saveGuideToBackend}
             disabled={isSaving}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 py-3 text-sm font-semibold text-white shadow-md transition-all hover:scale-[1.02] hover:shadow-lg disabled:opacity-60"
+            className={`flex flex-1 items-center justify-center gap-2 rounded-xl ${isSaving ? "bg-gray-400" : "bg-gradient-to-br from-blue-500 to-cyan-500"} py-3 text-sm font-semibold text-white shadow-md transition-all hover:scale-[1.02] hover:shadow-lg disabled:opacity-60`}
           >
             {isSaving ? (
               <>
@@ -1377,6 +1531,31 @@ const TripPlanPage = () => {
           </button>
         </div>
       </aside>
+      {/* Image preview pop-up window */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
+          onClick={() => setSelectedImage(null)}
+        >
+          {/* image container */}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            {/* close button */}
+            <Button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-2 right-2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
+            >
+              <X size={18} />
+            </Button>
+
+            {/* image */}
+            <img
+              src={selectedImage}
+              className="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl"
+              alt="Preview"
+            />
+          </div>
+        </div>
+      )}
 
       {/* ── Right panel: Map ── */}
       <div className="relative my-17 mr-4 h-screen flex-1">
@@ -1413,7 +1592,7 @@ const TripPlanPage = () => {
                     CATEGORY_COLORS.other);
               return (
                 <Marker
-                  key={idx}
+                  key={`${marker.type}-${marker.title}-${idx}`}
                   position={[marker.lat, marker.lng]}
                   icon={createCustomIcon(
                     color,
@@ -1421,26 +1600,143 @@ const TripPlanPage = () => {
                   )}
                 >
                   <Popup>
-                    <div className="max-w-[220px] rounded-lg p-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <div
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: color }}
-                        />
-                        <p className="text-sm font-semibold text-gray-800">
-                          {marker.title}
-                        </p>
-                      </div>
-                      <p className="text-[11px] text-gray-500 capitalize">
-                        {marker.type === "route"
-                          ? "Route stop"
-                          : marker.category}
-                      </p>
-                      {marker.note && (
-                        <p className="mt-2 border-t border-gray-100 pt-1 text-xs text-gray-600">
-                          {marker.note}
-                        </p>
+                    <div className="w-[280px] max-w-[280px] overflow-hidden rounded-2xl bg-white shadow-2xl">
+                      {/* 只有非 route 类型才显示图片区域 */}
+                      {marker.type !== "route" && (
+                        <>
+                          {marker.locationImageUrl ? (
+                            <div className="relative h-36 w-full overflow-hidden bg-gray-100">
+                              <img
+                                src={marker.locationImageUrl}
+                                alt={marker.title}
+                                className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  // 显示占位元素（如果有）
+                                  const parent = e.currentTarget.parentElement;
+                                  if (parent && parent.nextSibling) {
+                                    (
+                                      parent.nextSibling as HTMLElement
+                                    ).style.display = "flex";
+                                  }
+                                }}
+                              />
+                              {/* 渐变叠加层 */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+                              {/* 类别徽章 */}
+                              <div className="absolute bottom-3 left-3 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white shadow-md backdrop-blur-md">
+                                {marker.category?.toUpperCase() || "PLACE"}
+                              </div>
+
+                              {/* 时长徽章 */}
+                              {marker.timeEstimate && (
+                                <div className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-[10px] font-medium text-white shadow-md backdrop-blur-md">
+                                  <Clock
+                                    size={10}
+                                    className="text-indigo-200"
+                                  />
+                                  {marker.timeEstimate}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            /* 无图片时的优雅占位（仅非 route 类型） */
+                            <div className="relative flex h-36 w-full flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                              <div
+                                className="absolute inset-0 opacity-30"
+                                style={{
+                                  backgroundImage: `radial-gradient(circle at 2px 2px, #9ca3af 1px, transparent 0)`,
+                                  backgroundSize: "24px 24px",
+                                }}
+                              />
+                              <MapPin
+                                size={32}
+                                className="text-gray-400/70"
+                                strokeWidth={1.5}
+                              />
+                              <span className="mt-2 text-[10px] font-medium text-gray-400">
+                                No image available
+                              </span>
+                            </div>
+                          )}
+                        </>
                       )}
+
+                      {/* 文本内容区域 */}
+                      <div
+                        className={`space-y-2.5 p-4 ${marker.type === "route" ? "pt-4" : ""}`}
+                      >
+                        {/* 标题 + 彩色圆点 */}
+                        <div className="flex items-start gap-2">
+                          <div
+                            className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full shadow-sm"
+                            style={{ backgroundColor: color }}
+                          />
+                          <h3 className="flex-1 text-base leading-tight font-bold text-gray-800">
+                            {marker.title}
+                          </h3>
+                        </div>
+
+                        {/* 分类与时长 */}
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                          <span className="inline-flex items-center gap-1">
+                            <span className="text-[11px] font-medium">
+                              {marker.type === "route"
+                                ? "🚏 Route stop"
+                                : `🏷️ ${marker.category || "Place"}`}
+                            </span>
+                          </span>
+                          {marker.timeEstimate && (
+                            <>
+                              <span className="text-gray-300">•</span>
+                              <span className="inline-flex items-center gap-1">
+                                <Clock size={11} className="text-gray-400" />
+                                <span>{marker.timeEstimate}</span>
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        {/* 地址 */}
+                        {marker.address && (
+                          <div className="flex items-start gap-1.5 border-l-2 border-indigo-200 pl-2 text-[11px] text-gray-500">
+                            <MapPin
+                              size={11}
+                              className="mt-0.5 flex-shrink-0 text-indigo-400"
+                            />
+                            <span className="line-clamp-2">
+                              {marker.address}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* 描述 / 备注 */}
+                        {(marker.description || marker.note) && (
+                          <div className="mt-1 rounded-lg border border-indigo-100/50 bg-gradient-to-r from-gray-50 to-indigo-50/30 p-2.5 text-xs text-gray-600">
+                            <div className="mb-1 flex items-center gap-1">
+                              <Sparkles size={10} className="text-indigo-400" />
+                              <span className="text-[9px] font-semibold tracking-wide text-indigo-500">
+                                DETAILS
+                              </span>
+                            </div>
+                            <p className="line-clamp-3 leading-relaxed">
+                              {marker.description || marker.note}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* 无额外信息时的轻提示 */}
+                        {!marker.description &&
+                          !marker.note &&
+                          !marker.address && (
+                            <p className="flex items-center gap-1 text-[10px] text-gray-400 italic">
+                              <Eye size={10} />
+                              Explore this spot
+                            </p>
+                          )}
+                      </div>
                     </div>
                   </Popup>
                 </Marker>

@@ -64,7 +64,8 @@ const ImageUploader: React.FC<{
   preview?: string;
   onChange: (file: File | undefined, preview: string | undefined) => void;
   maxImages?: number;
-}> = ({ value, preview, onChange, maxImages = 1 }) => {
+  mode: "edit" | "create";
+}> = ({ value, preview, onChange, maxImages = 1, mode }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,10 +86,11 @@ const ImageUploader: React.FC<{
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+      <div className="">
         {preview && (
-          <div className="group relative aspect-square overflow-hidden rounded-lg border bg-gray-50">
+          <div className="group pointer-events:none relative mb-5 aspect-square overflow-hidden rounded-lg border bg-gray-50">
             <img
+              loading="lazy"
               src={preview}
               alt="Preview"
               className="h-full w-full object-cover"
@@ -96,21 +98,27 @@ const ImageUploader: React.FC<{
             <Button
               type="button"
               onClick={handleRemove}
-              className="absolute top-1 right-1 rounded-full bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute top-1 right-1 rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <X className="h-3 w-3 text-white" />
             </Button>
           </div>
         )}
         {!value && (
-          <Button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="hover:border-primary hover:bg-primary/5 flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-10 transition-all"
-          >
-            <Camera className="h-6 w-6 text-gray-400" />
-            <span className="text-xs text-gray-500">Add photo</span>
-          </Button>
+          <div className="group pointer-events: none relative aspect-square overflow-hidden rounded-lg border bg-gray-50">
+            <Button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="hover:border-primary hover:bg-primary/5 flex aspect-square h-full w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-10 transition-all"
+            >
+              <Camera className="h-6 w-6 text-gray-400" />
+              <span className="text-xs text-gray-500">
+                {mode === "edit"
+                  ? "Update thumbnail image"
+                  : "Add thumbnail image"}
+              </span>
+            </Button>
+          </div>
         )}
       </div>
       <input
@@ -485,6 +493,7 @@ const PostModal: React.FC<{
                         setValue("imagePreview", preview);
                       }}
                       maxImages={1}
+                      mode={mode}
                     />
                   )}
                 />

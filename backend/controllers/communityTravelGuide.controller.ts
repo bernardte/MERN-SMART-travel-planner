@@ -80,7 +80,9 @@ const editPost = async (req: Request, res: Response) => {
   if (!postId) throw new AppError(400, "Post ID are required");
 
   // Check if post exists
-  const existingPost = await CommunityTravelGuide.findById(postId);
+  const existingPost = await CommunityTravelGuide.findById(postId).select(
+    "+thumbnailImagePublicId",
+  );
 
   if (!existingPost) throw new AppError(404, "Post not found");
 
@@ -108,7 +110,6 @@ const editPost = async (req: Request, res: Response) => {
   // image update
   if (req.file?.buffer) {
     const existingPublicId = existingPost.thumbnailImagePublicId;
-
     if (existingPublicId) {
       await deleteFromCloudinary(existingPublicId);
     }
@@ -221,32 +222,43 @@ const getAllPublicPost = async (req: Request, res: Response) => {
 };
 
 const deleteOwnPost = async (req: Request, res: Response) => {
-  const { postId } = req.params;
-  const userId = req.user?._id;
+  try {
+    const { postId } = req.params;
+    const userId = req.user?._id;
 
-  const post = await CommunityTravelGuide.findById(postId);
+    const post = await CommunityTravelGuide.findById(postId).select(
+      "+thumbnailImagePublicId",
+    );
 
-  if (!post) {
-    throw new AppError(404, "Post not found");
-  }
+    if (!post) {
+      throw new AppError(404, "Post not found");
+    }
 
-  if (!userId) {
-    throw new AppError(401, "Unauthorized");
-  }
+    if (!userId) {
+      throw new AppError(401, "Unauthorized");
+    }
 
-  if (post.authorId.toString() !== userId?.toString()) {
-    throw new AppError(403, "You are not allowed to delete this post");
-  }
+    if (post.authorId.toString() !== userId.toString()) {
+      throw new AppError(403, "You are not allowed to delete this post");
+    }
 
-  // delete image from cloudinary
-  // extract public_id from URL
-  // const parts = post.thumbnailImage.split("/");
-  // const fileWithExt = parts[parts.length - 1];
-  // const publicId = `travel_guide/${fileWithExt?.split(".")[0]}`;
-  if (post.thumbnailImagePublicId) {
-    await deleteFromCloudinary(post.thumbnailImagePublicId);
+    // 1. delete image if exists
+    if (post.thumbnailImagePublicId) {
+      try {
+        await deleteFromCloudinary(post.thumbnailImagePublicId);
+      } catch (err) {
+        console.error("Cloudinary delete failed:", err);
+        //! Do not prevent the deletion of posts
+      }
+    }
+
+    // 2. ALWAYS delete post
     await CommunityTravelGuide.findByIdAndDelete(postId);
-    successApiResponse(res, 200, "Post deleted successfully");
+
+    return successApiResponse(res, 200, "Post deleted successfully");
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

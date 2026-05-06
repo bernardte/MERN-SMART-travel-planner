@@ -1,10 +1,13 @@
-import cloudinary from "../../config/cloudinary"
+import cloudinary from "../../config/cloudinary";
 
-export const deleteFromCloudinary = async (cloudinaryImagePublicId: string) => {
-    try {
-        await cloudinary.uploader.destroy(cloudinaryImagePublicId);
-        
-    } catch (error) {
-        console.log("Cloudinary delete error", error);
-    }
-}
+export const deleteFromCloudinary = async (publicId: string) => {
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    console.log("Cloudinary delete result:", result);
+
+    return result;
+  } catch (error) {
+    console.log("Cloudinary delete error", error);
+  }
+};

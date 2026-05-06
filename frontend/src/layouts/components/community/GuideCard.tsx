@@ -162,7 +162,11 @@ const GuideCard: React.FC<{
                   onClick={() => {
                     console.log("guide._id:", guide._id);
                     console.log("guide.itineraryId:", guide.itineraryId);
-                    navigate(`/trip-plan/view/${guide.itineraryId}`)}}>
+                    const id =
+                      typeof guide.itineraryId === "object"
+                        ? guide.itineraryId?._id
+                        : guide.itineraryId;
+                    navigate(`/trip-plan/view/${id}`)}}>
                   <MessageCircle className="mr-2 h-4 w-4 text-cyan-600" />
                   View Details
                 </DropdownMenuItem>

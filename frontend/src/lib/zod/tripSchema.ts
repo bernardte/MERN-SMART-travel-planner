@@ -14,6 +14,7 @@ const placeSchema = z.object({
   lng: z.number(),
   category: z.enum(["restaurant", "attraction", "cafe", "viewpoint", "other"]),
   description: z.string().optional(),
+  locationImageUrl: z.string().optional(),
 });
 
 const routeStopSchema = z.object({
