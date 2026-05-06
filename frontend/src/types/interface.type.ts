@@ -112,7 +112,9 @@ export interface TravelGuide {
   shares: number;
   isLiked?: boolean;
   isSaved?: boolean;
-  itineraryId: string;
+  itineraryId: {
+    _id: string
+  };
   privacy: "public" | "private";
   createdAt: Date;
   updatedAt?: Date;

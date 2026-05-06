@@ -76,7 +76,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
     ...new Set(guides.map((g) => g.country).filter(Boolean)),
   ];
   const countries = ["all", ...uniqueCountries.sort()];
-  
+
   const filteredGuides = useMemo(() => {
     return guides
       .filter(
@@ -603,9 +603,9 @@ const TravelCommunityGuidesPage: React.FC = () => {
           initialData={selectedGuide}
           onPostUpdated={(updatedGuide) => {
             setGuides((prev) =>
-              prev.map((guide) =>
-                guide._id === updatedGuide._id ? updatedGuide : guide,
-              ),
+              prev
+                .map((g) => (g._id === updatedGuide._id ? updatedGuide : g))
+                .filter((g) => g.privacy === "public"),
             );
           }}
           mode="edit"

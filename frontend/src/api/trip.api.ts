@@ -104,7 +104,10 @@ export const updateTripPlanApi = async (
   return handleApiResponse(res);
 };
 
-export const createCommentTripPlanApi = async (tripPlanId: string, data: { content: string }) => {
+export const createCommentTripPlanApi = async (
+  tripPlanId: string,
+  data: { content: string },
+) => {
   const response = await axiosInstance.post(
     `/api/trips-plan/${tripPlanId}/comments`,
     data,
@@ -121,16 +124,24 @@ export const getCommentTripPlanApi = async (tripPlanId: string) => {
   return response.data.data;
 };
 
-export const deleteCommentTripPlanApi = async (tripPlanId: string, commentId: string) => {
+export const deleteCommentTripPlanApi = async (
+  tripPlanId: string,
+  commentId: string,
+) => {
   await axiosInstance.delete(
     `/api/trips-plan/${tripPlanId}/comments/${commentId}`,
   );
-
 };
 
-export const updateCommentTripPlanApi = async (tripPlanId: string, commentId: string) => {
-  const response = await axiosInstance.delete(
-    `/api/trips-plan/${tripPlanId}/comments/${commentId}`,
+export const updateCommentTripPlanApi = async (
+  tripPlanId: string,
+  commentId: string,
+  comment: string,
+) => {
+  const response = await axiosInstance.patch(
+    `/api/trips-plan/${tripPlanId}/comments/${commentId}`,{
+      content: comment
+    }
   );
 
   return response.data.data;

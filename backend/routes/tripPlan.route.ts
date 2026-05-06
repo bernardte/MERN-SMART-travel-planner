@@ -36,11 +36,11 @@ router.put(
 
 router
   .route("/:tripPlanId/comments")
-  .post(protectRoute, travelGuideControllers.createCommentTripPlanApi)
-  .get(protectRoute, travelGuideControllers.getSpecificTripPlanComment);
+  .get(travelGuideControllers.getSpecificTripPlanComment)
+  .post(protectRoute, travelGuideControllers.createCommentTripPlanApi);
 
 router
-  .route("/:tripPlanId/comments/:commentId")
+  .route("/:tripPlanId/comments/:reviewId")
   .patch(protectRoute, travelGuideControllers.updateSpecificTripPlanComment)
   .delete(protectRoute, travelGuideControllers.deleteSpecificTripPlanComment);
 

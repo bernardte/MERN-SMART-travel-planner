@@ -189,10 +189,8 @@ const createCommentTripPlanApi = async (
 };
 
 const getSpecificTripPlanComment = async (req: Request, res: Response) => {
-  const userId = req.user?._id;
   const tripPlanId = req.params.tripPlanId;
 
-  if (!userId) throw new AppError(403, "Unauthorized");
   if (!tripPlanId) throw new AppError(400, "Trip plan ID is required!");
 
   const tripPlan = await TripPlan.findById(tripPlanId)
@@ -300,11 +298,16 @@ const updateSpecificTripPlanComment = async (req: Request, res: Response) => {
     },
   );
 
+
   if (!tripPlan) {
     throw new AppError(404, "Comment not found or no permission");
   }
 
-  return successApiResponse(res, 200, "Comment updated successfully", tripPlan);
+  return successApiResponse(res, 200, "Comment updated successfully", {
+    _id: reviewId,
+    content,
+    updatedAt: new Date(),
+  });
 };
 
 export default {
