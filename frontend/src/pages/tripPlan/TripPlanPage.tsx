@@ -1126,7 +1126,10 @@ const TripPlanPage = () => {
         <div className="flex items-center gap-4 border-b border-gray-100 px-8 py-5">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 opacity-60 blur-sm"></div>
-            <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white">
+            <div
+              onClick={() => navigate(`/profile/${user?.username}`)}
+              className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white z-100"
+            >
               <img
                 src={
                   user?.profilePicture ??

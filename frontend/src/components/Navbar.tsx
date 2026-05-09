@@ -1,4 +1,3 @@
-import { navigationItems } from "@/constants/landingPage";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {

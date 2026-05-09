@@ -277,7 +277,7 @@ const ViewTripPlanPage = () => {
 
   // save edited comment
   const handleUpdateComment = async (commentId: string) => {
-    if(!tripPlanId) return;
+    if (!tripPlanId) return;
     if (!editCommentContent.trim()) {
       showToast("error", "Comment cannot be empty");
       return;
@@ -379,7 +379,10 @@ const ViewTripPlanPage = () => {
         <div className="flex items-center gap-4 border-b border-gray-100 px-8 py-5">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 opacity-60 blur-sm" />
-            <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white">
+            <div
+              onClick={() => navigate(`/profile/${authorName}`)}
+              className="relative h-12 w-12 cursor-pointer overflow-hidden rounded-full ring-2 ring-white"
+            >
               <img
                 src={
                   authorAvatar ||
