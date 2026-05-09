@@ -79,6 +79,6 @@ tripPlanSchema.index({ userId: 1 });
 tripPlanSchema.index({ publishStatus: 1 });
 tripPlanSchema.index({ country: 1 });
 
-const TripPlan = mongoose.model<ITripPlan>("TravelGuide", tripPlanSchema);
+const TripPlan = mongoose.model<ITripPlan>("TripPlan", tripPlanSchema);
 
 export default TripPlan;

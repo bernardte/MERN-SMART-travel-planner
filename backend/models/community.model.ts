@@ -79,7 +79,7 @@ const CommunityTravelGuideSchema = new mongoose.Schema<CommunityTravelGuide>(
     viewsBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     itineraryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "TravelGuide",
+      ref: "TripPlan",
       required: true,
     },
   },
