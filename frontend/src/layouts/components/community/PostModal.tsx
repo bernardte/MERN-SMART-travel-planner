@@ -557,7 +557,7 @@ const PostModal: React.FC<{
                           value={field.value || ""}
                         />
                         {fieldState.error && (
-                          <p className="text-sm text-red-500">
+                          <p className="text-sm text-red-500 capitalize">
                             {fieldState.error.message}
                           </p>
                         )}

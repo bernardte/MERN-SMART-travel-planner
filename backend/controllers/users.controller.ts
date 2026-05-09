@@ -14,6 +14,7 @@ import mongoose from "mongoose";
 import CommunityTravelGuide from "../models/community.model";
 import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary";
 import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary";
+import TripPlan from "../models/tripPlan.model";
 
 const registerAccount = async (
   req: Request<{}, {}, UserRegisterDTO>,
@@ -227,10 +228,7 @@ const getUserPublishTravelGuide = async (req: Request, res: Response) => {
   successApiResponse(res, 200, "travel guide found", travelGuide);
 };
 
-const updateUserProfile = async (
-  req: Request<{}, {}, updateData>,
-  res: Response,
-) => {
+const updateUserProfile = async (req: Request<{}, {}, updateData>, res: Response) => {
   const user = req.user;
 
   if (!user?._id) throw new AppError(400, "Invalid userID");
@@ -264,6 +262,30 @@ const updateUserProfile = async (
     { new: true, runValidators: true },
   );
 
+
+  await TripPlan.updateMany(
+    // @ts-ignore
+    { userId: user._id },
+    {
+      $set: {
+        authorId: user._id,
+      },
+    },
+  );
+
+  // TripPlan reviews update
+  await TripPlan.updateMany(
+   // @ts-ignore
+   { "reviews.user": user._id },
+   {
+     $set: {
+       "reviews.$[review].username": updates.username,
+     },
+   },
+   {
+     arrayFilters: [{ "review.user": user._id }],
+   },
+ );
   successApiResponse(res, 200, "updated successfully", updateUser);
 };
 

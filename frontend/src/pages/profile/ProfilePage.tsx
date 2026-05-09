@@ -41,6 +41,12 @@ import { useParams } from "react-router-dom";
 import { useShallow } from "zustand/shallow";
 import useFollowStore from "@/stores/useFollowStore";
 import PostModal from "@/layouts/components/community/PostModal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const ProfilePage = () => {
   const { showToast } = useToast();
@@ -360,19 +366,33 @@ const ProfilePage = () => {
                     <h1 className="text-2xl font-bold text-gray-900">
                       {displayName}
                     </h1>
-                    {isOwnProfile && (
-                      <button
-                        onClick={() => setIsEditingName(true)}
-                        className="rounded-full p-1 text-gray-400 transition-all hover:bg-gray-100 hover:text-cyan-600"
-                      >
-                        <Edit3 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
                   </div>
                 )}
                 <div className="flex items-center gap-1 text-sm text-gray-500">
                   <AtSign className="h-4 w-4" />
-                  <span>@{username}</span>
+                  <span>{username}</span>
+                  {isOwnProfile && (
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => setIsEditingName(true)}
+                            className="rounded-full p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-cyan-600 active:scale-95"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </button>
+                        </TooltipTrigger>
+
+                        <TooltipContent
+                          side="top"
+                          sideOffset={5}
+                          className="animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 rounded-md bg-cyan-600 px-3 py-1.5 text-xs font-medium text-white shadow-md"
+                        >
+                          <p>✨ Update username</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                 </div>
               </div>
 
