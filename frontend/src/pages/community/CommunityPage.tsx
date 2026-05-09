@@ -185,7 +185,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
   const handleGuideCreated = (res: TravelGuide) => {
     const newGuide = res;
     // only add public posts into community page
-    if (res.privacy !== "public") return;
+    if (newGuide.privacy !== "public") return;
     setGuides((prev) => [newGuide, ...prev]);
   };
 

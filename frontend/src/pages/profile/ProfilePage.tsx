@@ -224,9 +224,10 @@ const ProfilePage = () => {
 
   const handleGuideCreated = (res: TravelGuide) => {
     const newGuide = res;
-
+    // only add public posts into community page
+    if (newGuide.privacy !== "public") return;
     setUserGuides((prev) => [newGuide, ...prev]);
-  };
+  };;
 
 
   if (!profileUser) {
