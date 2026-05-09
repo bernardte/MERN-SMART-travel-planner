@@ -190,7 +190,10 @@ const SavedPostsPage = () => {
               Start exploring community travel guides and save your favorites
               for later. Your saved adventures will appear here.
             </p>
-            <button className="group mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <button
+              onClick={() => navigate("/community-guide")}
+              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+            >
               <Sparkles className="h-5 w-5" />
               Explore guides
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -475,8 +478,12 @@ const SavedPostsPage = () => {
                               <div className="flex items-center gap-3">
                                 <Button
                                   onClick={() => {
-                                    navigate(`/trip-plan/view/${post.itineraryId}`)}}
-                                  className="group/btn inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2 text-sm font-medium text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+                                    navigate(
+                                      `/trip-plan/view/${post.itineraryId}`,
+                                    );
+                                  }}
+                                  className="group/btn inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2 text-sm font-medium text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+                                >
                                   Read guide
                                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-0.5" />
                                 </Button>

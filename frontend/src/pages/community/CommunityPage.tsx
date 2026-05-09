@@ -184,7 +184,8 @@ const TravelCommunityGuidesPage: React.FC = () => {
   //! frontend UI update, when created a new post
   const handleGuideCreated = (res: TravelGuide) => {
     const newGuide = res;
-
+    // only add public posts into community page
+    if (newGuide.privacy !== "public") return;
     setGuides((prev) => [newGuide, ...prev]);
   };
 
