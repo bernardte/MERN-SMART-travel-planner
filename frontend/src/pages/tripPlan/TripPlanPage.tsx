@@ -41,7 +41,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import useToast from "@/hooks/useToast";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import useTripStore from "@/stores/useTripStore";
 import { useShallow } from "zustand/shallow";
 import { LoadingState } from "@/layouts/components/loading/LoadingState";
@@ -713,6 +713,7 @@ const TripPlanPage = () => {
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const navigate = useNavigate();
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1023,7 +1024,10 @@ const TripPlanPage = () => {
       }
       const res = await createTripPlanApi(guideData);
       console.log("created post page: ", res);
-      showToast("success", "Guide saved!");
+      showToast("success", "Guide saved, redirecting back to dashboard!");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000)
       return res.data.data;
     } catch {
       showToast("error", "Failed to save guide");
