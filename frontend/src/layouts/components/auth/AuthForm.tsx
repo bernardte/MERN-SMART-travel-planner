@@ -181,14 +181,14 @@ const AuthForm = () => {
                   >
                     By creating an account, you agree to our{" "}
                     <Link
-                      to="#"
+                      to="/terms"
                       className="font-medium text-blue-600 underline-offset-4 hover:underline"
                     >
                       Terms of Service
                     </Link>{" "}
                     and{" "}
                     <Link
-                      to="#"
+                      to="/privacy"
                       className="font-medium text-blue-600 underline-offset-4 hover:underline"
                     >
                       Privacy Policy

@@ -181,6 +181,7 @@ const LandingPage = () => {
       </section>
 
       {/* Popular Destination */}
+      {/* Popular Destination */}
       <section
         id="destinations"
         className="bg-gradient-to-b from-gray-50 to-white px-4 py-20 md:px-8 md:py-28"
@@ -200,7 +201,7 @@ const LandingPage = () => {
               </p>
             </div>
             <Link
-              to="/destinations"
+              to="/community-guide"
               className="text-primary flex items-center gap-1 font-medium transition-all hover:gap-2"
             >
               View All Destinations
@@ -209,28 +210,50 @@ const LandingPage = () => {
           </div>
 
           <Marquee reverse pauseOnHover className="py-3 [--duration:40s]">
-            {popularDestination.map((dest) => (
-              <div
-                key={dest.topGuide._id}
-                className="relative overflow-hidden rounded-2xl"
-              >
-                <img
-                  src={dest.topGuide.thumbnailImage}
-                  alt={dest.country}
-                  className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
-                  <p className="text-sm text-white/80">{dest.country}</p>
-                  <h3 className="text-xl font-bold">
-                    {dest.topGuide.description}
-                  </h3>
+            {popularDestination.map((dest) => {
+
+
+              return (
+                <div
+                  key={dest.topGuide._id}
+                  className="group relative mx-2 w-72 flex-shrink-0 overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  {/* image container */}
+                  <div className="relative h-52 w-full overflow-hidden">
+                    <img
+                      src={dest.topGuide.thumbnailImage}
+                      alt={dest.country}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+
+                    {/* left corner popular label */}
+                    <div className="absolute top-3 left-3 z-10 rounded-full bg-black/60 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                      🔥 Popular
+                    </div>
+
+                    {/*  */}
+                    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
+                  </div>
+
+                  {/* cotent */}
+                  <div className="p-4">
+                    {/* country */}
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <Globe className="h-3.5 w-3.5" />
+                      <span>{dest.country}</span>
+                    </div>
+
+                    {/* description */}
+                    <h3 className="mt-1 line-clamp-1 text-lg font-bold text-gray-800">
+                      {dest.topGuide.description}
+                    </h3>
+                  </div>
+
+                  {/*  */}
+                  <div className="group-hover:ring-primary/20 absolute inset-0 rounded-2xl ring-1 ring-black/5 transition-all" />
                 </div>
-                <div className="absolute top-3 right-3 rounded-full bg-white/20 p-1.5 backdrop-blur-sm">
-                  <Heart className="h-4 w-4" />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </Marquee>
         </div>
       </section>
@@ -405,3 +428,5 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
+
