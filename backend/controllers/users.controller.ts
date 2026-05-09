@@ -99,6 +99,10 @@ const loginAccount = async (
   successApiResponse(res, 200, "Login successful", {
     _id: user._id,
     username: user.username,
+    name: user.name,
+    profilePicture: user.profilePicture || "",
+    followers: user.followers,
+    following: user.following,
     email: user.email,
     token: accessToken,
   });
@@ -268,11 +272,11 @@ const updateUserProfile = async (req: Request<{}, {}, updateData>, res: Response
     { userId: user._id },
     {
       $set: {
-        authorId: user._id,
+        authorName: updates.username,
+        authorAvatar: updates.profilePicture,
       },
     },
   );
-
   // TripPlan reviews update
   await TripPlan.updateMany(
    // @ts-ignore

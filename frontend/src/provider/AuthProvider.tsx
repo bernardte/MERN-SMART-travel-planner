@@ -22,13 +22,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(true);
       try {
         const response = await getLoginUserApi();
-        const result = response.data;
-        const authUser = result?.data?.user;
-        const map: Record<string, boolean> = {};
+        const authUser = response?.data?.data?.user;
         if (!authUser) {
           throw new Error("User not found");
         }
         setUser(authUser);
+        const map: Record<string, boolean> = {};
         authUser.following?.forEach((id: string) => {
           map[id] = true;
         });

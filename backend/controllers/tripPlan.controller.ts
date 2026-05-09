@@ -46,7 +46,7 @@ const createTrip = async (
     tripId: tripObjectId,
     userId: user?._id,
     country: trip.country,
-    authorName: user?.name,
+    authorName: user?.username,
     authorAvatar: user?.profilePicture ?? "",
     sections: sections,
     publishStatus: "private",
@@ -90,6 +90,8 @@ const getTripPlan = async (req: Request, res: Response) => {
 
     console.log("trip plan id: ", tripPlan._id);
   }
+
+  console.log("your trip plan", tripPlan);
 
   successApiResponse(res, 200, "Trip plan fetched successfully!", tripPlan);
 };
