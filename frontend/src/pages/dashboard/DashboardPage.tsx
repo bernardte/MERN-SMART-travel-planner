@@ -21,6 +21,7 @@ import {
   Edit3,
   Heart,
   Bookmark,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useToast from "@/hooks/useToast";
@@ -33,6 +34,16 @@ import {
 } from "@/api/travel_guide.api";
 import StatsCard from "@/components/card/Card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,7 +93,7 @@ const DashboardPage = () => {
   const user = useAuthStore((state) => state.user);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedGuide, setSelectedGuide] = useState<TravelGuide | null>(null);
   //! update the useEffect when the user follow and unfollow in view trip plan
   const [deletingGuideId, setDeletingGuideId] = useState<string | null>(null);
@@ -383,7 +394,7 @@ const DashboardPage = () => {
 
                       {/* Delete */}
                       <button
-                        onClick={() => handleTripDelete(trip._id)}
+                        onClick={() => setShowDeleteDialog(true)}
                         disabled={deletingId === trip._id}
                         className="rounded-lg p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50"
                       >
@@ -540,8 +551,6 @@ const DashboardPage = () => {
                   <div className="mt-0.5 h-0.5 w-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300 group-hover:w-full" />
                 </div>
               </div>
-
-              {/* Optional "View All" button with modern hover effect */}
               <button
                 onClick={() => setCreateModalOpen(true)}
                 className="group flex items-center gap-1.5 rounded-full bg-white/80 px-4 py-2 text-sm font-medium text-gray-600 shadow-sm ring-1 ring-gray-200 backdrop-blur-sm transition-all hover:bg-white hover:shadow-md hover:ring-blue-200"
@@ -557,15 +566,7 @@ const DashboardPage = () => {
               <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
             </div>
           ) : followerGuides.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/40 py-10 text-center backdrop-blur-sm">
-              <Compass className="mx-auto mb-2 h-10 w-10 text-gray-300" />
-              <p className="text-sm font-medium text-gray-500">
-                No guides from followed users yet
-              </p>
-              <p className="mt-1 text-xs text-gray-400">
-                Follow more travellers to see their stories!
-              </p>
-            </div>
+            <EmptyGuidesState setCreateModalOpen={setCreateModalOpen} />
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {followerGuides.map((guide) => (
@@ -637,7 +638,7 @@ const DashboardPage = () => {
                           onClick={() =>
                             navigate(`/profile/${guide.author.username}`)
                           }
-                          className="flex items-center gap-1.5 cursor-pointer"
+                          className="flex cursor-pointer items-center gap-1.5"
                         >
                           <img
                             src={
@@ -739,6 +740,46 @@ const DashboardPage = () => {
                       </div>
                     </div>
                   </div>
+                  {/* Delete Confirmation Dialog with cyan/blue theme */}
+                  <AlertDialog
+                    open={showDeleteDialog}
+                    onOpenChange={setShowDeleteDialog}
+                  >
+                    <AlertDialogContent className="border-cyan-200 shadow-xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-gray-900">
+                          Delete this post?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-500">
+                          This action cannot be undone. This will permanently
+                          delete your post and remove it from the community
+                          feed.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="border-gray-200 hover:bg-gray-50">
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleGuideDelete(guide._id)}
+                          className={cn(
+                            "border-0 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700",
+                            isLoading && "cursor-not-allowed opacity-50",
+                          )}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            "Delete"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ))}
             </div>
@@ -773,6 +814,7 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
+
       {createModalOpen && (
         <PostModal
           open={createModalOpen}
@@ -823,3 +865,41 @@ const DashboardPage = () => {
 `}</style>;
 
 export default DashboardPage;
+interface EmptyGuidesStateProps {
+  setCreateModalOpen: (open: boolean) => void;
+}
+
+export function EmptyGuidesState({
+  setCreateModalOpen,
+}: EmptyGuidesStateProps) {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-gray-200 bg-white/40 py-10 text-center backdrop-blur-sm transition-all duration-300 hover:border-gray-300">
+      {/* Animated compass icon with soft glow */}
+      <div className="relative mb-3">
+        <div className="absolute inset-0 animate-pulse rounded-full bg-blue-400/20 blur-md" />
+        <Compass className="relative mx-auto h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-500 bg-clip-text text-transparent drop-shadow-sm" />
+      </div>
+
+      {/* More elegant primary text */}
+      <p className="bg-gradient-to-r from-gray-700 to-gray-500 bg-clip-text text-base font-medium text-transparent dark:from-gray-200 dark:to-gray-400">
+        No guides from followed users yet
+      </p>
+
+      {/* Softer secondary text */}
+      <p className="mx-auto mt-1.5 max-w-xs text-sm leading-relaxed text-gray-400">
+        Follow more travellers to see their stories, or be the first to share
+        yours.
+      </p>
+
+      {/* Refined button with better hover effect */}
+      <Button
+        onClick={() => setCreateModalOpen(true)}
+        variant="outline"
+        className="group mt-5 flex items-center gap-2 rounded-full border-blue-200 bg-blue-50/50 px-5 py-2 text-sm font-medium text-blue-700 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-100/70 hover:shadow-md hover:shadow-blue-100/50 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-300 dark:hover:border-blue-700"
+      >
+        <span>Create Your First Private Post</span>
+        <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+      </Button>
+    </div>
+  );
+}
