@@ -1,17 +1,16 @@
 import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 import {
   Compass,
   Globe,
   Users,
   Star,
   ChevronRight,
-  Heart,
   Award,
   ArrowRight,
   Play,
 } from "lucide-react";
 import {
-  destinations,
   features,
   guides,
   testimonials,
@@ -24,9 +23,12 @@ import useAuthStore from "@/stores/useAuthStore";
 import { useEffect, useState } from "react";
 import { getPopularDestination } from "@/api/landing_page.api";
 import type { PopularDestination } from "@/types/interface.type";
+import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
+
 const LandingPage = () => {
   const firstRow = testimonials.slice(0, Math.ceil(testimonials.length / 2));
   const secondRow = testimonials.slice(Math.ceil(testimonials.length / 2));
+  const [showDemo, setShowDemo] = useState(false);
   const user = useAuthStore((state) => state.user);
   const [popularDestination, setPopularDestination] = useState<
     PopularDestination[]
@@ -103,10 +105,42 @@ const LandingPage = () => {
               {user ? "Start Planning Now" : "Register Now"}
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <button className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3.5 font-semibold text-white transition-all hover:bg-white/10">
+            <button
+              onClick={() => setShowDemo(true)}
+              className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3.5 font-semibold text-white transition-all hover:bg-white/10"
+            >
               <Play className="h-4 w-4" />
               Watch Demo
             </button>
+            {showDemo &&
+              createPortal(
+                <div
+                  className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/90 backdrop-blur-md"
+                  onClick={() => setShowDemo(false)}
+                >
+                  <div
+                    className="relative w-full max-w-5xl px-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => setShowDemo(false)}
+                      className="absolute right-0 z-[1000000] rounded-full bg-white/10 px-3 py-1 text-white hover:bg-white/20"
+                    >
+                      ✕
+                    </button>
+
+                    <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-2xl">
+                      <iframe
+                        className="h-full w-full"
+                        src="/video_demo.mp4"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                </div>,
+                document.body,
+              )}
           </div>
 
           {/* stats */}
@@ -211,8 +245,6 @@ const LandingPage = () => {
 
           <Marquee reverse pauseOnHover className="py-3 [--duration:40s]">
             {popularDestination.map((dest) => {
-
-
               return (
                 <div
                   key={dest.topGuide._id}
