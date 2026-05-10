@@ -619,7 +619,7 @@ const DashboardPage = () => {
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleGuideDelete(guide._id)}
+                              onClick={() => setShowDeleteDialog(true)}
                               className="cursor-pointer text-red-600"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
