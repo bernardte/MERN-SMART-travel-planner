@@ -487,12 +487,15 @@ const getFollowersTravelGuide = async (req: Request, res: Response) => {
   const followingIds = user.following || [];
 
   const guides = await CommunityTravelGuide.find({
-    // @ts-ignore
-    $or: [
-      { authorId: { $in: followingIds } }, // followed users
-      { authorId: userId }, // own posts
+    //@ts-ignore
+    $and: [
+      {
+        $or: [{ authorId: { $in: followingIds } }, { authorId: userId }],
+      },
+      {
+        privacy: "private",
+      },
     ],
-    privacy: "private",
   })
     .populate("authorId", "username profilePicture")
     .sort({ createdAt: -1 });
