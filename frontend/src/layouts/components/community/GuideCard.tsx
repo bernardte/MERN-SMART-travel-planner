@@ -92,6 +92,7 @@ const GuideCard: React.FC<{
     if (onDelete) onDelete(guide?._id);
     setShowDeleteDialog(false);
   };
+  
 
   return (
     <>

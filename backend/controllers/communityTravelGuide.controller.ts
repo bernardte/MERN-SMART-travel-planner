@@ -488,8 +488,11 @@ const getFollowersTravelGuide = async (req: Request, res: Response) => {
 
   const guides = await CommunityTravelGuide.find({
     // @ts-ignore
-    authorId: { $in: followingIds },
-    privacy: "private", // ⚠️ 推荐 public（feed 常规逻辑）
+    $or: [
+      { authorId: { $in: followingIds } }, // followed users
+      { authorId: userId }, // own posts
+    ],
+    privacy: "private",
   })
     .populate("authorId", "username profilePicture")
     .sort({ createdAt: -1 });

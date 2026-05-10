@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getTripApi, deleteTripApi } from "@/api/trip.api";
 import {
   Plus,
@@ -15,6 +15,12 @@ import {
   CalendarDays,
   Globe,
   Route,
+  MoreHorizontal,
+  Share2,
+  Copy,
+  Edit3,
+  Heart,
+  Bookmark,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useToast from "@/hooks/useToast";
@@ -26,6 +32,21 @@ import {
   getRecommendedTravelGuideApi,
 } from "@/api/travel_guide.api";
 import StatsCard from "@/components/card/Card";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import PostModal from "@/layouts/components/community/PostModal";
+import {
+  likedAndUnlikedPostApi,
+  savedPost,
+  deleteOwnPostApi,
+} from "@/api/travel_guide.api";
+import { cn } from "@/lib/utils";
 
 const formatDateRange = (start: string, end: string) => {
   const fmt = (iso: string) =>
@@ -59,6 +80,16 @@ const DashboardPage = () => {
   );
   const { showToast } = useToast();
   const user = useAuthStore((state) => state.user);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  const [selectedGuide, setSelectedGuide] = useState<TravelGuide | null>(null);
+  //! update the useEffect when the user follow and unfollow in view trip plan
+  const [deletingGuideId, setDeletingGuideId] = useState<string | null>(null);
+  const isGuideAuthor = followerGuides.some(
+    (guide) => guide.author?._id === user?._id,
+  );
+  console.log(isGuideAuthor);
   const statisCard = [
     {
       title: "Total Trip",
@@ -127,7 +158,7 @@ const DashboardPage = () => {
     fetchRecommendedTravelGuide();
   }, []);
 
-  const handleDelete = async (tripId: string) => {
+  const handleTripDelete = async (tripId: string) => {
     setDeletingId(tripId);
 
     try {
@@ -160,6 +191,98 @@ const DashboardPage = () => {
     fetchFollowerGuides();
   }, []);
 
+  const handleLike = useCallback(
+    async (id: string) => {
+      if (!user) {
+        showToast("info", "Please login to like post");
+        return;
+      }
+
+      try {
+        const data = await likedAndUnlikedPostApi(id);
+
+        setFollowerGuides((prev) =>
+          prev.map((guide) =>
+            guide._id === id
+              ? {
+                  ...guide,
+                  likes: data.likes,
+                  isLiked: data.isLiked,
+                }
+              : guide,
+          ),
+        );
+      } catch {
+        showToast("error", "Unexpected error occurs");
+      }
+    },
+    [user, showToast],
+  );
+
+  const handleSave = useCallback(
+    async (id: string) => {
+      if (!user) {
+        showToast("info", "Please login to save post");
+        return;
+      }
+
+      try {
+        const data = await savedPost(id);
+
+        setFollowerGuides((prev) =>
+          prev.map((guide) =>
+            guide._id === id
+              ? {
+                  ...guide,
+                  saves: data.saves,
+                  isSaved: data.isSaved,
+                }
+              : guide,
+          ),
+        );
+      } catch {
+        showToast("error", "Unexpected error occurs");
+      }
+    },
+    [user, showToast],
+  );
+  const handleShare = async (id: string) => {
+    const url = `${window.location.origin}/guide/${id}`;
+
+    try {
+      await navigator.clipboard.writeText(url);
+
+      showToast("success", "Guide link copied");
+    } catch {
+      showToast("error", "Failed to copy link");
+    }
+  };
+
+  const handleGuideDelete = async (postId: string) => {
+    try {
+      setDeletingGuideId(postId);
+
+      await deleteOwnPostApi(postId);
+
+      setFollowerGuides((prev) => prev.filter((guide) => guide._id !== postId));
+
+      showToast("success", "Guide deleted successfully");
+    } catch {
+      showToast("error", "Failed to delete guide");
+    } finally {
+      setDeletingGuideId(null);
+    }
+  };
+
+  //! frontend store the specific guide before preparing pass to post modal
+  const handleEdit = (postId: string) => {
+    const guide = followerGuides.find((g) => g._id === postId);
+
+    if (!guide) return;
+
+    setSelectedGuide(guide);
+    setEditModalOpen(true);
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8 lg:px-8">
@@ -260,7 +383,7 @@ const DashboardPage = () => {
 
                       {/* Delete */}
                       <button
-                        onClick={() => handleDelete(trip._id)}
+                        onClick={() => handleTripDelete(trip._id)}
                         disabled={deletingId === trip._id}
                         className="rounded-lg p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50"
                       >
@@ -397,15 +520,35 @@ const DashboardPage = () => {
         {/* Follower Travel Guides - Special Design */}
         <div className="mb-10">
           {followerGuides.length !== 0 && (
-            <div className="mb-5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 p-2 shadow-md">
-                  <Users className="h-5 w-5 text-white" />
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <div className="relative flex items-center gap-3">
+                {/* Modern gradient icon container with pulse effect */}
+                <div className="relative">
+                  <div className="absolute inset-0 animate-pulse rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 opacity-40 blur-md" />
+                  <div className="relative rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 p-2.5 shadow-lg shadow-blue-200/50">
+                    <Users className="h-5 w-5 text-white drop-shadow-sm" />
+                  </div>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  From People You Follow ✨
-                </h2>
+
+                {/* Title with modern typography and animated gradient underline */}
+                <div>
+                  <h2 className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
+                    {isGuideAuthor
+                      ? "Your Private Post"
+                      : "Private Posts from People You Follow"}
+                  </h2>
+                  <div className="mt-0.5 h-0.5 w-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300 group-hover:w-full" />
+                </div>
               </div>
+
+              {/* Optional "View All" button with modern hover effect */}
+              <button
+                onClick={() => setCreateModalOpen(true)}
+                className="group flex items-center gap-1.5 rounded-full bg-white/80 px-4 py-2 text-sm font-medium text-gray-600 shadow-sm ring-1 ring-gray-200 backdrop-blur-sm transition-all hover:bg-white hover:shadow-md hover:ring-blue-200"
+              >
+                <span>Create Private Post</span>
+                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </button>
             </div>
           )}
 
@@ -428,10 +571,7 @@ const DashboardPage = () => {
               {followerGuides.map((guide) => (
                 <div
                   key={guide._id}
-                  onClick={() =>
-                    navigate(`/trip-plan/view/${guide.itineraryId}`)
-                  }
-                  className="group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                  className="group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
                 >
                   {/* Gradient border effect on hover */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500 via-cyan-500 to-cyan-300 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -443,15 +583,65 @@ const DashboardPage = () => {
                         className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                     </div>
+
+                    {/* Menu Button */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/40 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-black/60"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem
+                          onClick={() => handleShare(guide._id)}
+                          className="cursor-pointer"
+                        >
+                          <Share2 className="mr-2 h-4 w-4 text-cyan-600" />
+                          Share
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
+                          <Copy className="mr-2 h-4 w-4 text-cyan-600" />
+                          Copy Link
+                        </DropdownMenuItem>
+                        {guide.author?._id === user?._id && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(guide._id)}
+                              className="cursor-pointer"
+                            >
+                              <Edit3 className="mr-2 h-4 w-4 text-blue-600" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleGuideDelete(guide._id)}
+                              className="cursor-pointer text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <div className="p-4">
                       <div className="mb-2 flex items-center justify-between">
                         <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
                           {guide.country || "Global"}
                         </span>
-                        <div className="flex items-center gap-1.5">
+                        <div
+                          onClick={() =>
+                            navigate(`/profile/${guide.author.username}`)
+                          }
+                          className="flex items-center gap-1.5 cursor-pointer"
+                        >
                           <img
                             src={
-                              (guide.author.profilePicture) ||
+                              guide.author.profilePicture ||
                               "https://ui-avatars.com/api/?background=8b5cf6&color=fff&rounded=true"
                             }
                             alt="author"
@@ -468,8 +658,30 @@ const DashboardPage = () => {
                       <p className="mt-1 line-clamp-2 text-xs text-gray-500">
                         {guide.description}
                       </p>
+                      {guide.tags?.slice(0, 3).map((tag, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="mt-3 border-0 bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-700 transition-all duration-300 hover:scale-105 hover:bg-cyan-100"
+                        >
+                          #{tag}
+                        </Badge>
+                      ))}
+                      {guide.tags?.length > 3 && (
+                        <Badge
+                          variant="secondary"
+                          className="border-0 bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 transition-all duration-300 hover:scale-105 hover:bg-gray-200"
+                        >
+                          +{guide.tags.length - 3} more
+                        </Badge>
+                      )}
                       <div className="mt-3 flex items-center justify-between">
-                        <button className="inline-flex items-center gap-1 text-xs font-medium text-blue-500 transition-all group-hover:gap-2">
+                        <button
+                          onClick={() =>
+                            navigate(`/trip-plan/view/${guide.itineraryId}`)
+                          }
+                          className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-blue-500 transition-all group-hover:gap-2"
+                        >
                           Read guide
                           <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                         </button>
@@ -477,6 +689,52 @@ const DashboardPage = () => {
                           {/* decorative avatars - just for style */}
                           <div className="h-6 w-6 rounded-full bg-gradient-to-r from-purple-200 to-pink-200 ring-2 ring-white" />
                           <div className="h-6 w-6 rounded-full bg-gradient-to-r from-indigo-200 to-purple-200 ring-2 ring-white" />
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="mt-2 flex items-center justify-between border-t border-blue-200 pt-4">
+                        <div className="flex items-center gap-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="group/like h-auto gap-2 p-0 text-sm font-medium text-gray-600 transition-all duration-300 hover:text-red-500"
+                            onClick={() => handleLike(guide._id)}
+                          >
+                            <Heart
+                              className={cn(
+                                "h-5 w-5 transition-all duration-300 group-hover/like:scale-110",
+                                guide.isLiked
+                                  ? "fill-red-500 text-red-500"
+                                  : "text-gray-400 group-hover/like:text-red-500",
+                              )}
+                            />
+                            <span
+                              className={guide.isLiked ? "text-red-500" : ""}
+                            >
+                              {guide.likes?.toLocaleString() || 0}
+                            </span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="group/save h-auto gap-2 p-0 text-sm font-medium text-gray-600 transition-all duration-300 hover:text-cyan-600"
+                            onClick={() => handleSave(guide?._id)}
+                          >
+                            <Bookmark
+                              className={cn(
+                                "h-5 w-5 transition-all duration-300 group-hover/save:scale-110",
+                                guide.isSaved
+                                  ? "fill-cyan-500 text-cyan-500"
+                                  : "text-gray-400 group-hover/save:text-cyan-500",
+                              )}
+                            />
+                            <span
+                              className={guide.isSaved ? "text-cyan-500" : ""}
+                            >
+                              Save
+                            </span>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -515,6 +773,37 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
+      {createModalOpen && (
+        <PostModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          mode="create"
+          privacy="private"
+          onPostCreated={(createdGuide) => {
+            // only add if current user should see it
+            const canView =
+              createdGuide.privacy === "public" ||
+              createdGuide.author?._id === user?._id;
+
+            if (!canView) return;
+
+            setFollowerGuides((prev) => [createdGuide, ...prev]);
+          }}
+        />
+      )}
+      {editModalOpen && (
+        <PostModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          initialData={selectedGuide}
+          mode="edit"
+          onPostUpdated={(updatedGuide) => {
+            setFollowerGuides((prev) =>
+              prev.map((g) => (g._id === updatedGuide._id ? updatedGuide : g)),
+            );
+          }}
+        />
+      )}
     </div>
   );
 };

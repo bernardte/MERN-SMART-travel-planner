@@ -683,6 +683,7 @@ const ProfilePage = () => {
       </div>
       {createModalOpen && (
         <PostModal
+          privacy="public"
           open={createModalOpen}
           onOpenChange={setCreateModalOpen}
           onPostCreated={handleGuideCreated}
