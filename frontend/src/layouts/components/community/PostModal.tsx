@@ -203,12 +203,14 @@ const PostModal: React.FC<{
   onOpenChange: (open: boolean) => void;
   onPostCreated?: (post: TravelGuide) => void;
   mode: "create" | "edit";
+  privacy?: "public" | "private"
   initialData?: TravelGuide | null;
   onPostUpdated?: (guide: TravelGuide) => void;
 }> = ({
   open,
   onOpenChange,
   onPostCreated,
+  privacy,
   mode,
   initialData,
   onPostUpdated,
@@ -238,7 +240,7 @@ const PostModal: React.FC<{
       description: "",
       country: "",
       tags: [],
-      privacy: "public",
+      privacy: privacy,
       itineraryId: "none",
       itineraryTitle: "",
       image: undefined,
@@ -279,7 +281,7 @@ const PostModal: React.FC<{
         description: "",
         country: "",
         tags: [],
-        privacy: "public",
+        privacy: privacy,
         itineraryId: "",
         itineraryTitle: "",
         image: undefined,

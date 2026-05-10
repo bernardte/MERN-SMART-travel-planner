@@ -23,6 +23,8 @@ import {
   Eye,
   Edit,
   Trash2,
+  UserCheck,
+  UserPlus2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -55,6 +57,8 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import type { Comment } from "@/types/interface.type";
 import { Button } from "@/components/ui/button";
+import useFollowStore from "@/stores/useFollowStore";
+import { useShallow } from "zustand/shallow";
 
 dayjs.extend(relativeTime);
 
@@ -125,6 +129,7 @@ const ViewTripPlanPage = () => {
   const [guideTitle, setGuideTitle] = useState("");
   const [authorIntro, setAuthorIntro] = useState("");
   const [authorName, setAuthorName] = useState("");
+  const [authorId, setAuthorId] = useState("");
   const [authorAvatar, setAuthorAvatar] = useState("");
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
@@ -138,6 +143,14 @@ const ViewTripPlanPage = () => {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentContent, setEditCommentContent] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const { toggleFollow, followMap, loadingMap } = useFollowStore(
+    useShallow((state) => ({
+      toggleFollow: state.toggleFollow,
+      followMap: state.followingMap,
+      loadingMap: state.loadingMap,
+    })),
+  );
 
   const FALLBACK_IMAGE =
     "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop";
@@ -149,6 +162,7 @@ const ViewTripPlanPage = () => {
         setIsLoading(true);
         const res = await getTripPlanApi(tripPlanId);
         const plan = res.data.data;
+        setAuthorId(plan.userId ?? "");
         setGuideTitle(plan.title ?? "");
         setAuthorIntro(plan.authorIntro ?? "");
         setAuthorName(plan.authorName ?? "");
@@ -188,6 +202,10 @@ const ViewTripPlanPage = () => {
 
   const toggleSection = (id: string) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const isFollowing = authorId ? followMap[authorId] : false;
+
+  const isLoadingFollow = authorId ? loadingMap[authorId] : false;
 
   const getAllMapMarkers = () => {
     const markers: Array<{
@@ -337,7 +355,7 @@ const ViewTripPlanPage = () => {
     <div className="relative flex min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100">
       {/* left panel*/}
       <aside
-        className="relative z-20 mx-4 my-17 flex h-screen w-[52%] flex-col overflow-y-auto rounded-3xl bg-white shadow-2xl"
+        className="relative z-20 mx-4 my-5 flex h-screen w-[52%] flex-col overflow-y-auto rounded-3xl bg-white shadow-2xl"
         style={{ scrollbarWidth: "thin" }}
       >
         {/* Hero content */}
@@ -399,6 +417,27 @@ const ViewTripPlanPage = () => {
             </p>
             <p className="text-xs text-gray-400">Travel Guide Creator</p>
           </div>
+          {user?._id && user?._id !== authorId && (
+            <Button
+              variant={isFollowing ? "outline" : "default"}
+              onClick={() => authorId && toggleFollow(authorId)}
+              disabled={isLoadingFollow}
+            >
+              {isLoadingFollow ? (
+                "Loading..."
+              ) : isFollowing ? (
+                <>
+                  <UserCheck />
+                  <span>following</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus2 />
+                  <span>Follow</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {authorIntro && (
@@ -854,7 +893,7 @@ const ViewTripPlanPage = () => {
       </aside>
 
       {/* right panel */}
-      <div className="relative my-17 mr-4 h-screen flex-1">
+      <div className="relative my-5 mr-4 h-screen flex-1">
         <div className="absolute inset-0 overflow-hidden rounded-3xl shadow-2xl">
           <MapContainer
             center={

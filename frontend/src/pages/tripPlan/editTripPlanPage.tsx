@@ -944,14 +944,14 @@ const EditTripPlanPage = () => {
             onChange={handleImageUpload}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          <label
+          {/* <label
             htmlFor="coverUpload"
             className="absolute top-4 right-4 cursor-pointer rounded-full bg-black/50 px-4 py-2 text-xs font-medium text-white backdrop-blur-sm hover:bg-black/70"
           >
             <div className="flex items-center gap-2">
               <Camera size={14} /> Change Cover
             </div>
-          </label>
+          </label> */}
           {/* Edit badge */}
           <div className="absolute top-4 left-4 rounded-full bg-orange-500/80 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
             ✏️ Editing

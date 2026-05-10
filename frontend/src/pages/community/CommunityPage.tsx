@@ -569,7 +569,7 @@ const TravelCommunityGuidesPage: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Load More */}
+        {/* Load More
         {filteredGuides.length > 0 && filteredGuides.length < guides.length && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -585,13 +585,14 @@ const TravelCommunityGuidesPage: React.FC = () => {
               <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </motion.div>
-        )}
+        )} */}
       </div>
 
       {/* Create Post Modal */}
       {createModalOpen && (
         <PostModal
           open={createModalOpen}
+          privacy="public"
           onOpenChange={setCreateModalOpen}
           onPostCreated={handleGuideCreated}
           mode="create"

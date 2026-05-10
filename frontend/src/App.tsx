@@ -40,6 +40,10 @@ function App() {
         <Routes>
           {/* ================= Public ================= */}
           <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route
+            path="/trip-plan/view/:tripPlanId"
+            element={<ViewTripPlanPage />}
+          />
           <Route path="/auth" element={<AuthenticationPage />} />
           <Route element={<ProtectRoute />}>
             <Route path="/plan" element={<PlanNewTripPage />} />
@@ -53,10 +57,6 @@ function App() {
             <Route
               path="/community-guide"
               element={<TravelCommunityGuidesPage />}
-            />
-            <Route
-              path="/trip-plan/view/:tripPlanId"
-              element={<ViewTripPlanPage />}
             />
 
             {/* ========== Protected ========== */}

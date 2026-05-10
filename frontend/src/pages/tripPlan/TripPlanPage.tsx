@@ -1091,7 +1091,7 @@ const TripPlanPage = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
           {/* overlay button */}
-          <label
+          {/* <label
             htmlFor="coverUpload"
             className="absolute top-4 right-4 cursor-pointer rounded-full bg-black/50 px-4 py-2 text-xs font-medium text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-black/70"
           >
@@ -1099,7 +1099,7 @@ const TripPlanPage = () => {
               <Camera size={14} />
               Change Cover
             </div>
-          </label>
+          </label> */}
 
           <div className="absolute right-0 bottom-0 left-0 p-8">
             <div className="mb-3 flex items-center gap-2">
