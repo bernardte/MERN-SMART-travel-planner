@@ -1,16 +1,26 @@
 import { z } from "zod";
 
-
-export const travelGuideSchema = z.object({
-  title: z.string().min(3, "Title too short"),
-  description: z.string().min(10, "Description too short"),
+const baseTravelGuideSchema = z.object({
+  title: z.string().min(3),
+  description: z.string().min(10),
   country: z.string(),
-  thumbnailImage: z.any().optional(),
   tags: z.array(z.string()),
   privacy: z.enum(["public", "private"]),
-  itineraryId: z.string().min(1, "Please select an itinerary"),
+  itineraryId: z.string().min(1),
+  itineraryTitle: z.string().optional(),
+  image: z.instanceof(File, {
+    message: "Thumbnail image is required",
+  }),
+
+  imagePreview: z.string().optional(),
 });
 
-export type travelGuideSchemaType = z.infer<
-  typeof travelGuideSchema
->;
+export const travelGuideCreateSchema = baseTravelGuideSchema;
+
+export const travelGuideEditSchema = baseTravelGuideSchema.extend({
+  thumbnailImage: z.instanceof(File).optional(),
+});
+
+export type TravelGuideBase = z.infer<typeof baseTravelGuideSchema>;
+export type TravelGuideCreate = z.infer<typeof travelGuideCreateSchema>;
+export type TravelGuideEdit = z.infer<typeof travelGuideEditSchema>;

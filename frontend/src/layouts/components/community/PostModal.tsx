@@ -42,30 +42,28 @@ import {
   createTravelGuideApi,
   updateTravelGuideApi,
 } from "@/api/travel_guide.api";
-import { travelGuideSchema } from "@/lib/zod/travelGuideSchema";
+import type {
+  TravelGuideCreate,
+  TravelGuideEdit,
+} from "@/lib/zod/travelGuideSchema";
+import {
+  travelGuideCreateSchema,
+  travelGuideEditSchema,
+} from "@/lib/zod/travelGuideSchema";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-// Extend the schema for form handling
-const formSchema = travelGuideSchema.extend({
-  image: z.instanceof(File).optional(),
-  imagePreview: z.string().optional(),
-  itineraryId: z.string().optional(),
-  itineraryTitle: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
 const ImageUploader: React.FC<{
   value?: File;
   preview?: string;
   onChange: (file: File | undefined, preview: string | undefined) => void;
   maxImages?: number;
+  error?: string;
   mode: "edit" | "create";
-}> = ({ value, preview, onChange, maxImages = 1, mode }) => {
+}> = ({ value, preview, onChange, maxImages = 1, mode, error }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,6 +102,7 @@ const ImageUploader: React.FC<{
             </Button>
           </div>
         )}
+        {error && <p className="text-sm text-red-500">{error}</p>}
         {!value && (
           <div className="group pointer-events: none relative aspect-square overflow-hidden rounded-lg border bg-gray-50">
             <Button
@@ -203,7 +202,7 @@ const PostModal: React.FC<{
   onOpenChange: (open: boolean) => void;
   onPostCreated?: (post: TravelGuide) => void;
   mode: "create" | "edit";
-  privacy?: "public" | "private"
+  privacy?: "public" | "private";
   initialData?: TravelGuide | null;
   onPostUpdated?: (guide: TravelGuide) => void;
 }> = ({
@@ -232,19 +231,23 @@ const PostModal: React.FC<{
       getSpecificUserItineraries: state.getSpecificUserItineraries,
     })),
   );
-
+  // Extend the schema for form handling
+  const schema =
+    mode === "create" ? travelGuideCreateSchema : travelGuideEditSchema;
+    
+  type FormValues = z.infer<typeof schema>;
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       title: "",
       description: "",
       country: "",
       tags: [],
       privacy: privacy,
-      itineraryId: "none",
+      itineraryId: "",
       itineraryTitle: "",
       image: undefined,
-      imagePreview: undefined,
+      imagePreview: "",
     },
   });
 
@@ -346,14 +349,8 @@ const PostModal: React.FC<{
       tags: data.tags,
       privacy: data.privacy,
       itineraryId: data.itineraryId ?? "",
+      image: data.image,
     };
-
-    const result = travelGuideSchema.safeParse(rawData);
-
-    if (!result.success) {
-      showToast("error", result.error.issues[0]?.message || "Invalid input");
-      return;
-    }
 
     if (!data.itineraryId) {
       showToast("info", "Please select an itinerary");
@@ -365,10 +362,9 @@ const PostModal: React.FC<{
 
       if (mode === "create") {
         const payload = {
-          ...result.data,
+          ...rawData,
           authorId: user._id, // ✅ inject here
           itineraryId: data.itineraryId,
-          ...(data.image && { image: data.image }),
         };
 
         const created = await createTravelGuideApi(payload, (progress) =>
@@ -381,11 +377,9 @@ const PostModal: React.FC<{
         reset();
       } else if (mode === "edit" && initialData?._id) {
         const payload = {
-          ...result.data,
-          ...(data.image && { image: data.image }),
+          ...rawData,
         };
 
-        console.log(payload);
         const updated = await updateTravelGuideApi(
           initialData._id,
           payload,
@@ -486,14 +480,15 @@ const PostModal: React.FC<{
                 <Controller
                   name="image"
                   control={control}
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <ImageUploader
                       value={field.value}
                       preview={form.watch("imagePreview")}
                       onChange={(file, preview) => {
                         field.onChange(file);
-                        setValue("imagePreview", preview);
+                        setValue("imagePreview", preview ?? "");
                       }}
+                      error={fieldState?.error?.message}
                       maxImages={1}
                       mode={mode}
                     />
