@@ -6,19 +6,20 @@ const baseTravelGuideSchema = z.object({
   country: z.string(),
   tags: z.array(z.string()),
   privacy: z.enum(["public", "private"]),
-  itineraryId: z.string().min(1),
-  itineraryTitle: z.string().optional(),
+  itineraryId: z.string().min(1, "Please select an itinerary"),
   image: z.instanceof(File, {
     message: "Thumbnail image is required",
   }),
-
-  imagePreview: z.string().optional(),
 });
 
-export const travelGuideCreateSchema = baseTravelGuideSchema;
+export const travelGuideCreateSchema = baseTravelGuideSchema.extend({
+  itineraryTitle: z.string(),
+  imagePreview: z.string(),
+});
 
 export const travelGuideEditSchema = baseTravelGuideSchema.extend({
-  thumbnailImage: z.instanceof(File).optional(),
+  itineraryTitle: z.string().optional(),
+  imagePreview: z.string().optional(),
 });
 
 export type TravelGuideBase = z.infer<typeof baseTravelGuideSchema>;
