@@ -1,5 +1,6 @@
 import express from "express";
 // import fileupload from "express-fileupload";
+import rateLimit from "express-rate-limit";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
@@ -20,6 +21,19 @@ const PORT = env.PORT;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max:5, // max 100 requests per user
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 app.use(
   cors({
