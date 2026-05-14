@@ -42,10 +42,6 @@ import {
   createTravelGuideApi,
   updateTravelGuideApi,
 } from "@/api/travel_guide.api";
-import type {
-  TravelGuideCreate,
-  TravelGuideEdit,
-} from "@/lib/zod/travelGuideSchema";
 import {
   travelGuideCreateSchema,
   travelGuideEditSchema,
@@ -82,6 +78,8 @@ const ImageUploader: React.FC<{
     onChange(undefined, undefined);
   };
 
+  const hasImage = Boolean(value || preview);
+
   return (
     <div className="space-y-3">
       <div className="">
@@ -102,8 +100,8 @@ const ImageUploader: React.FC<{
             </Button>
           </div>
         )}
-        {!value && (
-          <div className="group pointer-events: none relative aspect-square overflow-hidden rounded-lg border bg-gray-50">
+        {!hasImage && (
+          <div className="group relative aspect-square overflow-hidden rounded-lg border bg-gray-50">
             <Button
               type="button"
               onClick={() => fileInputRef.current?.click()}
