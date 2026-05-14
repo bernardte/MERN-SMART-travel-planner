@@ -22,9 +22,20 @@ const PORT = env.PORT;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+
+
+app.use(
+  cors({
+    origin: env.FRONTEND_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // max 100 requests per user
+  limit: 100, // limit 100 requests per user
   message: {
     success: false,
     message: "Too many requests, please try again later.",
@@ -34,13 +45,6 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-
-app.use(
-  cors({
-    origin: env.FRONTEND_URL,
-    credentials: true,
-  }),
-);
 
 app.use(cookieParser()); //get the cookie from request and set the cookie in the response.
 app.use(express.json());
