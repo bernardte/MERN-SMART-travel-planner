@@ -13,7 +13,7 @@ const createPost = async (req: Request, res: Response) => {
   const { title, description, country, tags, privacy, authorId, itineraryId } =
     req.body;
 
-  console.log(req.body);
+  console.log("body: ", req.body);
 
   if (!title || !description || !country || !authorId || !itineraryId) {
     throw new AppError(400, "All field are required!");
