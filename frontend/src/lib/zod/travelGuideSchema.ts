@@ -1,9 +1,11 @@
 import { z } from "zod";
 
 const baseTravelGuideSchema = z.object({
-  title: z.string().min(3),
-  description: z.string().min(10),
-  country: z.string(),
+  title: z.string().min(3, "Please enter a title with at least 3 characters"),
+  description: z
+    .string()
+    .min(10, "Please write at least 10 characters for the description"),
+  country: z.string().min(1, "Country is required"),
   tags: z.array(z.string()),
   privacy: z.enum(["public", "private"]),
   itineraryId: z.string().min(1, "Please select an itinerary"),
