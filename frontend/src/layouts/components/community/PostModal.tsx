@@ -102,7 +102,6 @@ const ImageUploader: React.FC<{
             </Button>
           </div>
         )}
-        {error && <p className="text-sm text-red-500">{error}</p>}
         {!value && (
           <div className="group pointer-events: none relative aspect-square overflow-hidden rounded-lg border bg-gray-50">
             <Button
@@ -120,6 +119,7 @@ const ImageUploader: React.FC<{
           </div>
         )}
       </div>
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <input
         ref={fileInputRef}
         type="file"
@@ -234,7 +234,7 @@ const PostModal: React.FC<{
   // Extend the schema for form handling
   const schema =
     mode === "create" ? travelGuideCreateSchema : travelGuideEditSchema;
-    
+
   type FormValues = z.infer<typeof schema>;
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -501,36 +501,44 @@ const PostModal: React.FC<{
                 <Label className="flex items-center gap-1 text-sm font-medium">
                   <Map className="h-4 w-4" /> Related Itinerary
                 </Label>
-                <Select
-                  value={watchedItineraryId || "none"}
-                  onValueChange={handleItinerarySelect}
-                  disabled={itinerariesLoading}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        itinerariesLoading
-                          ? "Loading your itineraries..."
-                          : "Select an itinerary to link (optional)"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {itineraries?.map((itinerary) => (
-                      <SelectItem key={itinerary._id} value={itinerary._id!}>
-                        <div className="flex flex-col items-start">
-                          <span className="font-medium">{itinerary.title}</span>
-                          {itinerary.country && (
-                            <span className="text-xs text-gray-500">
-                              {itinerary.country}
-                            </span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="itineraryId"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <div className="space-y-2">
+                      <Select
+                        value={field.value || "none"}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleItinerarySelect(value);
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select an itinerary" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {itineraries?.map((itinerary) => (
+                            <SelectItem
+                              key={itinerary._id}
+                              value={itinerary._id!}
+                            >
+                              {itinerary.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* ✅ ERROR MESSAGE DISPLAY */}
+                      {fieldState.error && (
+                        <p className="text-sm text-red-500">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                />
                 {form.watch("itineraryTitle") && (
                   <p className="text-muted-foreground text-xs">
                     This post will be linked to your itinerary:{" "}
@@ -551,6 +559,7 @@ const PostModal: React.FC<{
                         <Input
                           {...field}
                           placeholder="e.g., Japan"
+                          className="capitalize"
                           value={field.value || ""}
                         />
                         {fieldState.error && (
@@ -668,7 +677,7 @@ const PostModal: React.FC<{
                 </div>
               )}
             </div>
-            <DialogFooter className="border-t px-6 py-4">
+            <DialogFooter className="mb-10 border-t px-6 py-4">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
