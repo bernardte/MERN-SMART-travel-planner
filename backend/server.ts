@@ -24,7 +24,7 @@ const __dirname = path.dirname(__filename);
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max:5, // max 100 requests per user
+  max: 10, // max 100 requests per user
   message: {
     success: false,
     message: "Too many requests, please try again later.",
