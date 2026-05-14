@@ -58,16 +58,25 @@ const SignupForm = ({
 
   const onSubmit = async (values: UserSignUpSchemaType) => {
     setIsLoading(true);
+
     try {
       const validateData = userSignUpSchema.safeParse(values);
 
-      if (!validateData) showToast("error", "All field is required!");
+      if (!validateData.success) {
+        showToast("error", "All fields are required!");
+        return;
+      }
+
       const res = await registerAccountApi(values);
-      const result = res.data;
-      showToast("success", result.message);
+
+      showToast("success", res.data.message);
+
       setMode("login");
     } catch (error: any) {
-      showToast("error", `${error.res.data.error}`);
+        showToast(
+          "error",
+          error.response?.data?.message || "Registration failed",
+        );
     } finally {
       setIsLoading(false);
     }
