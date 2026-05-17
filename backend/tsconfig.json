@@ -12,10 +12,10 @@
     "verbatimModuleSyntax": true
   },
   "include": [
-    "src/**/*.ts",
     "**/*.ts"
   ],
   "exclude": [
-    "dist"
+    "dist",
+    "node_modules"
   ]
 }
