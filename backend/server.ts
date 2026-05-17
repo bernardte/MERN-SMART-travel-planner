@@ -72,18 +72,22 @@ app.use("/api/favourites", favouriteRoute);
 
 //! Error handling middleware should be the last middleware for getting all the controller errors.
 app.use(errorHandlingMiddleware);
+// ❌ Remove this entire block — Vercel handles it via CDN
+/**
+ * 
+  if(env.NODE_ENV === "production"){
+    const __dirname = path.resolve();
 
-if(env.NODE_ENV === "production"){
-  const __dirname = path.resolve();
+    //serve static files from frontend/dist
+    app.use(express.static(path.join(__dirname, "../frontend/dist")))
 
-  //serve static files from frontend/dist
-  app.use(express.static(path.join(__dirname, "../frontend/dist")))
+    // handle SPA routing - Send all non-API routes to index.html
+    app.get("/{*any}", (req, res) => {
+      res.sendFile(path.join(__dirname, "../frontend/dist/index.html"))
+    })
+  }
+ */
 
-  // handle SPA routing - Send all non-API routes to index.html
-  app.get("/{*any}", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"))
-  })
-}
 if (env.NODE_ENV !== "production"){
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
