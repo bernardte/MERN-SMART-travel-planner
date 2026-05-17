@@ -139,8 +139,6 @@ const postData = {
 
 const PostPage: React.FC = () => {
   const spotsLeft = postData.groupSize.max - postData.groupSize.current;
-  const joinPercentage =
-    (postData.groupSize.current / postData.groupSize.max) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">

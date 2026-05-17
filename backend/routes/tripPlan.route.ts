@@ -1,9 +1,9 @@
 import express from "express";
 import multer from "multer";
-import { asyncHandler } from "../utils/async_handler";
-import { protectRoute } from "../middleware/protect_route.middleware";
-import travelGuideControllers from "../controllers/tripPlan.controller";
-import { optionalAuth } from "../middleware/optional_auth.middleware";
+import { asyncHandler } from "../utils/async_handler.js";
+import { protectRoute } from "../middleware/protect_route.middleware.js";
+import travelGuideControllers from "../controllers/tripPlan.controller.js";
+import { optionalAuth } from "../middleware/optional_auth.middleware.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });

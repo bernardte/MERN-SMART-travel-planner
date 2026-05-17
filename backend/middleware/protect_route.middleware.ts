@@ -1,9 +1,9 @@
-import User from "../models/user.model";
+import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
-import { env } from "../config/env";
+import { env } from "../config/env.js";
 import type { Request, Response, NextFunction } from "express";
-import { AppError } from "../utils/error_api_response";
+import { AppError } from "../utils/error_api_response.js";
 
 export interface DecodedToken extends JwtPayload {
   userId: string;

@@ -1,9 +1,9 @@
 import express from "express";
-import { asyncHandler } from "../utils/async_handler";
-import communityTravelGuideController from "../controllers/communityTravelGuide.controller";
-import { protectRoute } from "../middleware/protect_route.middleware";
-import { optionalAuth } from "../middleware/optional_auth.middleware";
-import { upload } from "../middleware/multer.middleware";
+import { asyncHandler } from "../utils/async_handler.js";
+import communityTravelGuideController from "../controllers/communityTravelGuide.controller.js";
+import { protectRoute } from "../middleware/protect_route.middleware.js";
+import { optionalAuth } from "../middleware/optional_auth.middleware.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const route = express.Router();
 

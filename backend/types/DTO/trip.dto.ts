@@ -1,4 +1,4 @@
-import type { IDay } from "../../models/trip.model";
+import type { IDay } from "../../models/trip.model.js";
 
 export interface SaveTripBodyDTO {
   country: string;

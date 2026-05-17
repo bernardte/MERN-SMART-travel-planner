@@ -23,7 +23,6 @@ import useAuthStore from "@/stores/useAuthStore";
 import { useEffect, useState } from "react";
 import { getPopularDestination } from "@/api/landing_page.api";
 import type { PopularDestination } from "@/types/interface.type";
-import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
 
 const LandingPage = () => {
   const firstRow = testimonials.slice(0, Math.ceil(testimonials.length / 2));

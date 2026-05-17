@@ -12,7 +12,12 @@ export interface User {
   updatedAt: Date;
 }
 
-export type PostUserDetails = Omit<User, "email">;
+export interface PostUserSummary {
+  _id: string;
+  name: string;
+  username: string;
+  profilePicture: string;
+}
 
 //! Interface of Location and Date is part of Trip attribute
 //! Location -> Date -> Trip
@@ -103,7 +108,7 @@ export interface TravelGuide {
   country: string;
   thumbnailImage: string;
   imagePreviews?: string[];
-  author: PostUserDetails; // 🔥 mapped from authorId
+  author?: PostUserSummary; // 🔥 mapped from authorId
   tags: string[];
   likes: number;
   postLikedByUser: string[]; // 🔥 length of backend likes[]
@@ -113,7 +118,7 @@ export interface TravelGuide {
   isLiked?: boolean;
   isSaved?: boolean;
   itineraryId: {
-    _id: string
+    _id: string;
   };
   privacy: "public" | "private";
   createdAt: Date;

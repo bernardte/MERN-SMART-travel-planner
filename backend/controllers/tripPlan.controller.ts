@@ -1,13 +1,13 @@
 import type { Request, Response } from "express";
-import type { CreatTripPlanDTO } from "../types/DTO/travel_guide.dto";
-import { AppError } from "../utils/error_api_response";
+import type { CreatTripPlanDTO } from "../types/DTO/travel_guide.dto.js";
+import { AppError } from "../utils/error_api_response.js";
 import mongoose, { Types } from "mongoose";
-import { successApiResponse } from "../utils/succes_api_response";
-import Trip from "../models/trip.model";
-import TripPlan from "../models/tripPlan.model";
-import CommunityTravelGuide from "../models/community.model";
-import { mongoDBObjectIDConverter } from "../utils/helpers/mongoDBObjectIDConverter";
-import type { createCommentDTO } from "../types/DTO/trip.dto";
+import { successApiResponse } from "../utils/succes_api_response.js";
+import Trip from "../models/trip.model.js";
+import TripPlan from "../models/tripPlan.model.js";
+import CommunityTravelGuide from "../models/community.model.js";
+import { mongoDBObjectIDConverter } from "../utils/helpers/mongoDBObjectIDConverter.js";
+import type { createCommentDTO } from "../types/DTO/trip.dto.js";
 
 const createTrip = async (
   req: Request<{}, {}, CreatTripPlanDTO>,

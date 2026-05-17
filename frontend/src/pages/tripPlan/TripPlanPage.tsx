@@ -26,7 +26,6 @@ import {
   UtensilsCrossed,
   Building2,
   Clock,
-  MapPinned,
   Route,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -36,7 +35,6 @@ import {
   Marker,
   Popup,
   useMap,
-  Polyline,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";

@@ -162,12 +162,11 @@ const GuideCard: React.FC<{
                 <DropdownMenuItem className="cursor-pointer"
                   onClick={() => {
                     console.log("guide._id:", guide._id);
-                    console.log("guide.itineraryId:", guide.itineraryId);
-                    const id =
-                      typeof guide.itineraryId === "object"
-                        ? guide.itineraryId?._id
-                        : guide.itineraryId;
-                    navigate(`/trip-plan/view/${id}`)}}>
+                    // const id =
+                    //   typeof guide.itinerary?._id === "object"
+                    //     ? guide.itinerary?._id
+                    //     : guide.itineraryId;
+                    navigate(`/trip-plan/view/${guide.itinerary?._id}`)}}>
                   <MessageCircle className="mr-2 h-4 w-4 text-cyan-600" />
                   View Details
                 </DropdownMenuItem>
@@ -224,7 +223,7 @@ const GuideCard: React.FC<{
             <div className="mb-3 flex items-start justify-between">
               <div className="flex items-center gap-2.5">
                 <Link
-                  to={`/profile/${guide.author.username}`}
+                  to={`/profile/${guide.author?.username}`}
                   onMouseEnter={preloadProfile}
                 >
                   <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-cyan-500/20">
@@ -254,7 +253,7 @@ const GuideCard: React.FC<{
                   <Button
                     variant={isFollowing ? "outline" : "default"}
                     onClick={() =>
-                      guide.author._id && toggleFollow(guide.author._id)
+                      guide.author?._id && toggleFollow(guide.author?._id)
                     }
                     disabled={isLoadingFollow}
                   >

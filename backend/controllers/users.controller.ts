@@ -1,20 +1,20 @@
 import type { Request, Response } from "express";
-import User from "../models/user.model";
-import { successApiResponse } from "../utils/succes_api_response";
-import { AppError } from "../utils/error_api_response";
+import User from "../models/user.model.js";
+import { successApiResponse } from "../utils/succes_api_response.js";
+import { AppError } from "../utils/error_api_response.js";
 import bcrypt from "bcryptjs";
 import type {
   updateData,
   UserLoginDTO,
   UserRegisterDTO,
-} from "../types/DTO/user.dto";
-import generateTokensAndSetCookies from "../utils/auth/generate_tokens_and_set_cookies";
-import { env } from "../config/env";
+} from "../types/DTO/user.dto.js";
+import generateTokensAndSetCookies from "../utils/auth/generate_tokens_and_set_cookies.js";
+import { env } from "../config/env.js";
 import mongoose from "mongoose";
-import CommunityTravelGuide from "../models/community.model";
-import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary";
-import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary";
-import TripPlan from "../models/tripPlan.model";
+import CommunityTravelGuide from "../models/community.model.js";
+import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary.js";
+import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary.js";
+import TripPlan from "../models/tripPlan.model.js";
 
 const registerAccount = async (
   req: Request<{}, {}, UserRegisterDTO>,

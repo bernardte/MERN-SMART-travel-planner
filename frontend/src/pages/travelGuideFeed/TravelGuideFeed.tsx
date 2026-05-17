@@ -43,7 +43,6 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 
 // Types
 interface DayPlan {
@@ -227,7 +226,7 @@ const CreatePlanModal: React.FC<{
   const [days, setDays] = useState<DayPlan[]>([
     { day: 1, title: "", description: "", activities: [] },
   ]);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachments, _] = useState<Attachment[]>([]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
