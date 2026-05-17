@@ -3,9 +3,6 @@ import {
   Compass,
   Users,
   Camera,
-  TrendingUp,
-  Calendar,
-  Award,
 } from "lucide-react";
 
 interface NavigationItems {
@@ -70,24 +67,6 @@ export const features: Feature[] = [
     description:
       "Explore destinations through stunning photos and videos from our global community.",
   },
-  // {
-  //   icon: <TrendingUp className="h-6 w-6" />,
-  //   title: "Price Tracking",
-  //   description:
-  //     "Get alerts when flight and hotel prices drop for your dream destinations.",
-  // },
-  // {
-  //   icon: <Calendar className="h-6 w-6" />,
-  //   title: "Itinerary Sharing",
-  //   description:
-  //     "Share your travel plans with friends and collaborate on group trips.",
-  // },
-  // {
-  //   icon: <Award className="h-6 w-6" />,
-  //   title: "Travel Badges",
-  //   description:
-  //     "Earn achievements and recognition as you explore new places and share experiences.",
-  // },
 ];
 
 //destinations

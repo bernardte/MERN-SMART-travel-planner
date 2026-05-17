@@ -279,7 +279,7 @@ const likeAndUnlikePost = async (req: Request, res: Response) => {
   if (alreadyLiked) {
     post.likes = post.likes.filter((id) => id.toString() !== userId.toString());
   } else {
-    //@ts-ignore
+    //@ts-expect-error
     post.likes.push(userId);
   }
 
@@ -309,7 +309,7 @@ const savedPost = async (req: Request, res: Response) => {
     throw new AppError(401, "Post not found");
   }
 
-  //@ts-ignore
+  //@ts-expect-error
   const isSaved = post.postSavedByUser.includes(userId);
   if (isSaved) {
     post.postSavedByUser = post.postSavedByUser.filter(
@@ -318,7 +318,7 @@ const savedPost = async (req: Request, res: Response) => {
 
     post.saves = Math.max(0, post.saves - 1);
   } else {
-    //@ts-ignore
+    // @ts-expect-error
     post.postSavedByUser.push(userId);
 
     post.saves += 1;
@@ -423,11 +423,11 @@ const getPersonalizedRecommendation = async (
     const obj = guide.toObject();
 
     const isLiked = obj.likes?.some(
-      (id: any) => id.toString() === userId.toString(),
+      (id: Types.ObjectId | string) => id.toString() === userId.toString(),
     );
 
     const isSaved = obj.postSavedByUser?.some(
-      (id: any) => id.toString() === userId.toString(),
+      (id: Types.ObjectId | string) => id.toString() === userId.toString(),
     );
 
     return {

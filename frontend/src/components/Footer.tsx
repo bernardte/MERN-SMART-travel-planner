@@ -1,4 +1,3 @@
-import { navigationItems } from "@/constants/landingPage";
 import { Link } from "react-router-dom";
 import {
   ArrowUp,

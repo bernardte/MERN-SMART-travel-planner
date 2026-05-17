@@ -4,7 +4,7 @@ import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
 import ResetPasswordForm from "./ResetPasswordForm";
 import { Button } from "@/components/ui/button";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 // Animation variants
 const containerVariants: Variants = {
