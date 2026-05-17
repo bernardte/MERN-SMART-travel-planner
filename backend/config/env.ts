@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 export const env = createEnv({
   server: {
-    PORT: z.string().min(1, "PORT is required"),
+    PORT: z.string().optional(),
     FRONTEND_URL: z.url().min(1, "FRONTEND_URL is required"),
     MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
     JWT_ACCESS_TOKEN: z.string().min(1, "Access token is requried"),

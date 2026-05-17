@@ -21,3 +21,13 @@ export const connectDB = async (): Promise<void> => {
     process.exit(1); //! 1 is failure, 0 is success message
   }
 };
+let isConnected = false;
+
+export const connectOnce = async () => {
+  if(isConnected) return;
+
+  if(!env.MONGODB_URI) throw new Error("MONGODB_URI is missing");
+
+  await connectDB();
+  isConnected = true;
+}
