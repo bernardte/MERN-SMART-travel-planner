@@ -1,4 +1,5 @@
 import express from "express";
+import type { Request, Response, NextFunction } from "express";
 import rateLimit from "express-rate-limit";
 // import fileupload from "express-fileupload";
 import cors from "cors";
@@ -6,7 +7,7 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "./config/env.js";
-import { connectDB } from "./config/db.js";
+import { connectDB, connectOnce } from "./config/db.js";
 import userRouter from "./routes/users.route.js";
 import refreshTokenRouter from "./routes/refreshToken.route.js";
 import { errorHandlingMiddleware } from "./middleware/error_handling.middleware.js";
@@ -15,7 +16,6 @@ import tripPlanRoute from "./routes/tripPlan.route.js";
 import communityTravelGuideRoute from "./routes/communityTravelGuide.route.js";
 import favouriteRoute from "./routes/favourite.route.js";
 
-connectDB();
 const app = express();
 const PORT = env.PORT;
 
@@ -37,6 +37,15 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 
+});
+
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await connectOnce();
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.use(cookieParser()); //get the cookie from request and set the cookie in the response.
