@@ -88,10 +88,10 @@ app.use(errorHandlingMiddleware);
   }
  */
 
-if (env.NODE_ENV !== "production"){
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
+// if (env.NODE_ENV !== "production"){
+//   app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+//   });
+// }
 
 export default app;
