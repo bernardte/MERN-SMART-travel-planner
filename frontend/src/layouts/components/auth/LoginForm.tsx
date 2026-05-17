@@ -17,7 +17,7 @@ import {
 import { loginApi } from "@/api/auth.api";
 import useToast from "@/hooks/useToast";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LoadingWave } from "@/components/ui/loading";
 import { Eye, EyeClosed } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";

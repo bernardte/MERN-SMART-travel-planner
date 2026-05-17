@@ -15,7 +15,6 @@ import {
   ArrowRight,
   Share2,
   Heart,
-  BookmarkPlus,
   UserPlus,
   MessageCircle,
 } from "lucide-react";
