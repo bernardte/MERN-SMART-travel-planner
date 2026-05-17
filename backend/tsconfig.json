@@ -8,10 +8,11 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "verbatimModuleSyntax": true
+    "sourceMap": true
   },
   "include": [
+    // force to run server.ts in deployment as the starting point
+    "server.ts",
     "**/*.ts"
   ],
   "exclude": [
