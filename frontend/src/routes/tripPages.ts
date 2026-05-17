@@ -11,9 +11,7 @@ export const EditTripPage = lazy(
 );
 
 export const TripPlan = lazy(() => import("@/pages/tripPlan/TripPlanPage"));
-export const TravelGuideFeed = lazy(
-  () => import("@/pages/travelGuideFeed/TravelGuideFeed"),
-);
+
 export const EditTripPlanPage = lazy(
   () => import("@/pages/tripPlan/editTripPlanPage"),
 );

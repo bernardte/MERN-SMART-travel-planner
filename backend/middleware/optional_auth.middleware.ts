@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
-import { env } from "../config/env";
-import User from "../models/user.model";
-import type { DecodedToken } from "./protect_route.middleware";
+import { env } from "../config/env.js";
+import User from "../models/user.model.js";
+import type { DecodedToken } from "./protect_route.middleware.js";
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const token = req.cookies.accessToken;

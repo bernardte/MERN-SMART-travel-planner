@@ -1,8 +1,8 @@
 import express from "express";
-import usersController from "../controllers/users.controller";
-import { asyncHandler } from "../utils/async_handler";
-import { protectRoute } from "../middleware/protect_route.middleware";
-import { upload } from "../middleware/multer.middleware";
+import usersController from "../controllers/users.controller.js";
+import { asyncHandler } from "../utils/async_handler.js";
+import { protectRoute } from "../middleware/protect_route.middleware.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const router = express.Router();
 

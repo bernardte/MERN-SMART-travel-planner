@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import type { Response } from "express";
-import { env } from "../../config/env";
+import { env } from "../../config/env.js";
 import { type ObjectId } from "mongoose";
 
 function generateTokensAndSetCookies(userId: ObjectId, res: Response) {

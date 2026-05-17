@@ -36,7 +36,6 @@ import {
   Marker,
   Popup,
   useMap,
-  Polyline,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -44,7 +43,6 @@ import useToast from "@/hooks/useToast";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   LoadingState,
-  LoadingWave,
 } from "@/layouts/components/loading/LoadingState";
 import { getTripPlanApi, updateTripPlanApi } from "@/api/trip.api";
 import useAuthStore from "@/stores/useAuthStore";

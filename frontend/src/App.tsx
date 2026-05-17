@@ -27,7 +27,6 @@ import {
   ViewTripPage,
   EditTripPage,
   TripPlan,
-  TravelGuideFeed,
   EditTripPlanPage,
   ViewTripPlanPage,
 } from "@/routes/tripPages";
@@ -68,7 +67,6 @@ function App() {
               />
               <Route path="/favourite-post" element={<SavedPostPage />} />
               <Route path="/post" element={<PostPage />} />
-              <Route path="/feed-post/:id" element={<TravelGuideFeed />} />
               <Route
                 path="/create-travel-guide/:tripId"
                 element={<TripPlan />}

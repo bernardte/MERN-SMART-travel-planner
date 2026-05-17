@@ -1,7 +1,7 @@
 import express from "express";
-import { asyncHandler } from "../utils/async_handler";
-import { protectRoute } from "../middleware/protect_route.middleware";
-import tripController from "../controllers/trip.controller";
+import { asyncHandler } from "../utils/async_handler.js";
+import { protectRoute } from "../middleware/protect_route.middleware.js";
+import tripController from "../controllers/trip.controller.js";
 
 const router = express.Router();
 

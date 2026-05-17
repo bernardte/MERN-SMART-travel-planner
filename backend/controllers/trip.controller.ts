@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
-import Trip from "../models/trip.model";
-import { successApiResponse } from "../utils/succes_api_response";
-import { AppError } from "../utils/error_api_response";
-import type { SaveTripBodyDTO } from "../types/DTO/trip.dto";
-import TripPlan from "../models/tripPlan.model";
-import CommunityTravelGuide from "../models/community.model";
+import Trip from "../models/trip.model.js";
+import { successApiResponse } from "../utils/succes_api_response.js";
+import { AppError } from "../utils/error_api_response.js";
+import type { SaveTripBodyDTO } from "../types/DTO/trip.dto.js";
+import TripPlan from "../models/tripPlan.model.js";
+import CommunityTravelGuide from "../models/community.model.js";
 
 const saveTrip = async (
   req: Request<{}, {}, SaveTripBodyDTO>,

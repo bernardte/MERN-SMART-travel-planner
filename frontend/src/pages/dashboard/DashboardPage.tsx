@@ -21,7 +21,6 @@ import {
   Edit3,
   Heart,
   Bookmark,
-  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useToast from "@/hooks/useToast";
@@ -96,7 +95,6 @@ const DashboardPage = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedGuide, setSelectedGuide] = useState<TravelGuide | null>(null);
   //! update the useEffect when the user follow and unfollow in view trip plan
-  const [deletingGuideId, setDeletingGuideId] = useState<string | null>(null);
   const isGuideAuthor = followerGuides.some(
     (guide) => guide.author?._id === user?._id,
   );
@@ -271,8 +269,6 @@ const DashboardPage = () => {
 
   const handleGuideDelete = async (postId: string) => {
     try {
-      setDeletingGuideId(postId);
-
       await deleteOwnPostApi(postId);
 
       setFollowerGuides((prev) => prev.filter((guide) => guide._id !== postId));
@@ -280,9 +276,7 @@ const DashboardPage = () => {
       showToast("success", "Guide deleted successfully");
     } catch {
       showToast("error", "Failed to delete guide");
-    } finally {
-      setDeletingGuideId(null);
-    }
+    } 
   };
 
   //! frontend store the specific guide before preparing pass to post modal
@@ -394,7 +388,7 @@ const DashboardPage = () => {
 
                       {/* Delete */}
                       <button
-                        onClick={() => setShowDeleteDialog(true)}
+                        onClick={() => handleTripDelete(trip._id)}
                         disabled={deletingId === trip._id}
                         className="rounded-lg p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50"
                       >
@@ -480,7 +474,7 @@ const DashboardPage = () => {
                   <div
                     key={guide._id}
                     onClick={() =>
-                      navigate(`/trip-plan/view/${guide.itineraryId}`)
+                      navigate(`/trip-plan/view/${guide.itinerary?._id}`)
                     }
                     className="group flex cursor-pointer gap-4 rounded-xl p-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 hover:shadow-sm"
                   >
@@ -636,13 +630,13 @@ const DashboardPage = () => {
                         </span>
                         <div
                           onClick={() =>
-                            navigate(`/profile/${guide.author.username}`)
+                            navigate(`/profile/${guide.author?.username}`)
                           }
                           className="flex cursor-pointer items-center gap-1.5"
                         >
                           <img
                             src={
-                              guide.author.profilePicture ||
+                              guide.author?.profilePicture ||
                               "https://ui-avatars.com/api/?background=8b5cf6&color=fff&rounded=true"
                             }
                             alt="author"
@@ -679,7 +673,7 @@ const DashboardPage = () => {
                       <div className="mt-3 flex items-center justify-between">
                         <button
                           onClick={() =>
-                            navigate(`/trip-plan/view/${guide.itineraryId}`)
+                            navigate(`/trip-plan/view/${guide.itinerary?._id}`)
                           }
                           className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-blue-500 transition-all group-hover:gap-2"
                         >

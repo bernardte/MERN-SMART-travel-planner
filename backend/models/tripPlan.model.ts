@@ -1,5 +1,5 @@
 import mongoose, { Types } from "mongoose";
-import { sectionSchema } from "./section.model";
+import { sectionSchema } from "./section.model.js";
 
 export interface IReview {
   _id?: mongoose.Types.ObjectId;

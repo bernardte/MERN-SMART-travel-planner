@@ -1,6 +1,9 @@
 import axiosInstance from "@/lib/axios";
 import { handleApiResponse } from "@/lib/helpers/apiWrapper";
-import type { travelGuideSchemaType } from "@/lib/zod/travelGuideSchema";
+import type {
+  TravelGuideCreate,
+  TravelGuideEdit,
+} from "@/lib/zod/travelGuideSchema";
 import { buildFormData } from "@/lib/helpers/buildFormData";
 
 export const getItinerariesByUserIdApi = async (userId: string) => {
@@ -12,7 +15,7 @@ export const getItinerariesByUserIdApi = async (userId: string) => {
 };
 
 export const createTravelGuideApi = async (
-  data: travelGuideSchemaType & { image?: File },
+  data: TravelGuideCreate & { image?: File },
   onProgress?: (percent: number) => void,
 ) => {
   const formData = buildFormData(data);
@@ -34,10 +37,9 @@ export const createTravelGuideApi = async (
 
 export const updateTravelGuideApi = async (
   postId: string,
-  data: travelGuideSchemaType & { image?: File },
+  data: TravelGuideEdit & { image?: File },
   onProgress?: (percent: number) => void,
 ) => {
-
   const formData = buildFormData(data);
   console.log(data);
   const response = await axiosInstance.patch(

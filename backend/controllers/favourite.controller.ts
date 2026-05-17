@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
-import CommunityTravelGuide from "../models/community.model";
-import { successApiResponse } from "../utils/succes_api_response";
-import { AppError } from "../utils/error_api_response";
+import CommunityTravelGuide from "../models/community.model.js";
+import { successApiResponse } from "../utils/succes_api_response.js";
+import { AppError } from "../utils/error_api_response.js";
 import type mongoose from "mongoose";
 
 type PopulatedAuthor = {

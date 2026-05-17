@@ -253,7 +253,7 @@ const SavedPostsPage = () => {
                             <div
                               className="relative cursor-pointer"
                               onClick={() =>
-                                navigate(`/profile/${post.author.username}`)
+                                navigate(`/profile/${post.author?.username}`)
                               }
                             >
                               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100" />
@@ -271,7 +271,7 @@ const SavedPostsPage = () => {
                                 <span className="font-semibold text-slate-900">
                                   {post.author?.name}
                                 </span>
-                                {post.author._id !== currentUser?._id && (
+                                {post.author?._id !== currentUser?._id && (
                                   <Button
                                     variant={
                                       isFollowing ? "outline" : "default"
@@ -479,7 +479,7 @@ const SavedPostsPage = () => {
                                 <Button
                                   onClick={() => {
                                     navigate(
-                                      `/trip-plan/view/${post.itineraryId}`,
+                                      `/trip-plan/view/${post.itinerary?._id}`,
                                     );
                                   }}
                                   className="group/btn inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2 text-sm font-medium text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"

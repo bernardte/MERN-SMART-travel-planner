@@ -59,7 +59,7 @@ const ImageUploader: React.FC<{
   maxImages?: number;
   error?: string;
   mode: "edit" | "create";
-}> = ({ value, preview, onChange, maxImages = 1, mode, error }) => {
+}> = ({ value, preview, onChange, mode, error }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,7 +218,6 @@ const PostModal: React.FC<{
   const user = useAuthStore((state) => state.user);
   const {
     itineraries,
-    itinerariesLoading,
     itinerariesError,
     getSpecificUserItineraries,
   } = useCommunityTravelGuideStore(

@@ -4,7 +4,6 @@ import {
   Scale,
   AlertCircle,
   UserCheck,
-  Ban,
   Clock,
 } from "lucide-react";
 

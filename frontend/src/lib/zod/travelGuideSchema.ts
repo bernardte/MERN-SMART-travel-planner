@@ -15,8 +15,8 @@ const baseTravelGuideSchema = z.object({
 });
 
 export const travelGuideCreateSchema = baseTravelGuideSchema.extend({
-  itineraryTitle: z.string(),
-  imagePreview: z.string(),
+  itineraryTitle: z.string().optional(),
+  imagePreview: z.string().optional(),
 });
 
 export const travelGuideEditSchema = baseTravelGuideSchema.extend({

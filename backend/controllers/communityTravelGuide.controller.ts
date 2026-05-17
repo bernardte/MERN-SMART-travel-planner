@@ -1,13 +1,13 @@
-import CommunityTravelGuide from "../models/community.model";
-import TripPlan from "../models/tripPlan.model";
-import { successApiResponse } from "../utils/succes_api_response";
-import { AppError } from "../utils/error_api_response";
+import CommunityTravelGuide from "../models/community.model.js";
+import TripPlan from "../models/tripPlan.model.js";
+import { successApiResponse } from "../utils/succes_api_response.js";
+import { AppError } from "../utils/error_api_response.js";
 import type { Request, Response } from "express";
-import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary";
-import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary";
+import { uploadToCloudinary } from "../utils/helpers/uploadToCloudinary.js";
+import { deleteFromCloudinary } from "../utils/helpers/deleteFromCloudinary.js";
 import type { Types } from "mongoose";
 import mongoose from "mongoose";
-import User from "../models/user.model";
+import User from "../models/user.model.js";
 
 const createPost = async (req: Request, res: Response) => {
   const { title, description, country, tags, privacy, authorId, itineraryId } =
@@ -279,7 +279,6 @@ const likeAndUnlikePost = async (req: Request, res: Response) => {
   if (alreadyLiked) {
     post.likes = post.likes.filter((id) => id.toString() !== userId.toString());
   } else {
-    //@ts-expect-error
     post.likes.push(userId);
   }
 
@@ -309,7 +308,6 @@ const savedPost = async (req: Request, res: Response) => {
     throw new AppError(401, "Post not found");
   }
 
-  //@ts-expect-error
   const isSaved = post.postSavedByUser.includes(userId);
   if (isSaved) {
     post.postSavedByUser = post.postSavedByUser.filter(
@@ -318,7 +316,6 @@ const savedPost = async (req: Request, res: Response) => {
 
     post.saves = Math.max(0, post.saves - 1);
   } else {
-    // @ts-expect-error
     post.postSavedByUser.push(userId);
 
     post.saves += 1;
