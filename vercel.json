@@ -4,13 +4,13 @@
     {
       "src": "backend/server.ts",
       "use": "@vercel/node"
-    }
-  ],
-
-  "routes": [
+    },
     {
-      "src": "/(.*)",
-      "dest": "backend/server.ts"
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ]
 }
