@@ -74,15 +74,17 @@ app.use("/api/favourites", favouriteRoute);
 app.use(errorHandlingMiddleware);
 
 if(env.NODE_ENV === "production"){
-    const __dirname = path.resolve();
+  const __dirname = path.resolve();
+  // __dirname here = backend/dist (after tsc compilation)
+  // so ../../frontend/dist = project_root/frontend/dist
+  const frontendDist = path.join(__dirname, "../../frontend/dist");
 
-    //serve static files from frontend/dist
-    app.use(express.static(path.join(__dirname, "../frontend/dist")))
-
-    // handle SPA routing - Send all non-API routes to index.html - react app
-    app.get("/{*any}", (req, res) => {
-      res.sendFile(path.join(__dirname, "../frontend/dist/index.html"))
-    })
+  //serve static files from frontend/dist
+  app.use(express.static(frontendDist));
+  // handle SPA routing - Catch-all: serve React app for any non-API route
+  app.get("/{*any}", (req: Request, res: Response) => {
+    res.sendFile(path.join(frontendDist, "index.html"));
+  });
 }
 
 
