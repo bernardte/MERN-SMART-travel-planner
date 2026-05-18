@@ -15,7 +15,6 @@ import tripRoute from "./routes/trip.route.js";
 import tripPlanRoute from "./routes/tripPlan.route.js";
 import communityTravelGuideRoute from "./routes/communityTravelGuide.route.js";
 import favouriteRoute from "./routes/favourite.route.js";
-import serverless from "serverless-http";
 
 const app = express();
 const PORT = env.PORT;
@@ -25,13 +24,13 @@ const __dirname = path.dirname(__filename);
 app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: env.FRONTEND_URL,
+    origin: [env.FRONTEND_URL, "http://localhost:3000"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-
+console.log("server hit");
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 100,
@@ -73,10 +72,8 @@ app.use("/api/favourites", favouriteRoute);
 
 //! Error handling middleware should be the last middleware for getting all the controller errors.
 app.use(errorHandlingMiddleware);
-// ❌ Remove this entire block — Vercel handles it via CDN
-/**
- * 
-  if(env.NODE_ENV === "production"){
+
+if(env.NODE_ENV === "production"){
     const __dirname = path.resolve();
 
     //serve static files from frontend/dist
@@ -86,14 +83,11 @@ app.use(errorHandlingMiddleware);
     app.get("/{*any}", (req, res) => {
       res.sendFile(path.join(__dirname, "../frontend/dist/index.html"))
     })
-  }
- */
-
-// if (env.NODE_ENV !== "production"){
-//   app.listen(PORT, () => {
-//     console.log(`Server is running on port ${PORT}`);
-//   });
-// }
+}
 
 
-export const handler = serverless(app);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+
