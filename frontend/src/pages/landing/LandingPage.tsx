@@ -23,8 +23,6 @@ import useAuthStore from "@/stores/useAuthStore";
 import { useEffect, useState } from "react";
 import { getPopularDestination } from "@/api/landing_page.api";
 import type { PopularDestination } from "@/types/interface.type";
-import landingPageVideo from "public/landing_page_video.mp4";
-import videoDemo from "public/video_demo.mp4";
 
 const LandingPage = () => {
   const firstRow = testimonials.slice(0, Math.ceil(testimonials.length / 2));
@@ -52,7 +50,7 @@ const LandingPage = () => {
         {/* background video */}
         <div className="absolute inset-0 z-0">
           <video
-            src={landingPageVideo}
+            src={"landing_page_video.mp4"}
             autoPlay
             muted
             loop
@@ -133,7 +131,7 @@ const LandingPage = () => {
                     <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-2xl">
                       <iframe
                         className="h-full w-full"
-                        src={videoDemo}
+                        src={"/video_demo.mp4"}
                         allow="autoplay; encrypted-media"
                         allowFullScreen
                       />
