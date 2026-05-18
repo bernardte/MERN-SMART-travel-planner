@@ -1,14 +1,12 @@
 import axios from "axios";
 import useAuthStore from "@/stores/useAuthStore";
 import { getRefreshToken } from "./helpers/getRefreshToken";
-import type {
-  AxiosError,
-  InternalAxiosRequestConfig,
-} from "axios";
+import type { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { env } from "./zod/envSchema";
 
 const axiosInstance = axios.create({
-  baseURL: env.VITE_BASE_URL,
+  baseURL:
+    env.MODE === "development" ? env.VITE_BASE_URL : env.VITE_PRODUCTION_URL,
   withCredentials: true,
 });
 
@@ -63,7 +61,11 @@ axiosInstance.interceptors.response.use(
       requestUrl.includes("/api/users/register-account") ||
       requestUrl.includes("/api/refreshToken");
 
-    if (error.response?.status === 401 && !original?._retry && !shouldSkipRefresh) {
+    if (
+      error.response?.status === 401 &&
+      !original?._retry &&
+      !shouldSkipRefresh
+    ) {
       original._retry = true;
 
       if (isRefreshing) {
