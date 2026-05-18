@@ -77,8 +77,8 @@ if(env.NODE_ENV === "production"){
   const __dirname = path.resolve();
   // __dirname here = backend/dist (after tsc compilation)
   // so ../../frontend/dist = project_root/frontend/dist
-  const frontendDist = path.join(__dirname, "../../frontend/dist");
-
+  const frontendDist = path.join(__dirname, "../frontend/dist");
+  console.log("Serving frontend from:", frontendDist);
   //serve static files from frontend/dist
   app.use(express.static(frontendDist));
   // handle SPA routing - Catch-all: serve React app for any non-API route
