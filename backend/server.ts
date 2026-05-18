@@ -82,7 +82,7 @@ if(env.NODE_ENV === "production"){
   //serve static files from frontend/dist
   app.use(express.static(frontendDist));
   // handle SPA routing - Catch-all: serve React app for any non-API route
-  app.get("/{*any}", (req: Request, res: Response) => {
+  app.get("/(.*)/", (req: Request, res: Response) => {
     res.sendFile(path.join(frontendDist, "index.html"));
   });
 }
