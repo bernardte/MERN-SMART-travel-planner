@@ -15,6 +15,7 @@ import tripRoute from "./routes/trip.route.js";
 import tripPlanRoute from "./routes/tripPlan.route.js";
 import communityTravelGuideRoute from "./routes/communityTravelGuide.route.js";
 import favouriteRoute from "./routes/favourite.route.js";
+import serverless from "serverless-http";
 
 const app = express();
 const PORT = env.PORT;
@@ -94,4 +95,5 @@ app.use(errorHandlingMiddleware);
 //   });
 // }
 
-export default app;
+
+export const handler = serverless(app);
