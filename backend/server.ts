@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "./config/env.js";
-import { connectDB, connectOnce } from "./config/db.js";
+import { connectOnce } from "./config/db.js";
 import userRouter from "./routes/users.route.js";
 import refreshTokenRouter from "./routes/refreshToken.route.js";
 import { errorHandlingMiddleware } from "./middleware/error_handling.middleware.js";
@@ -70,6 +70,27 @@ app.use("/api/trips-plan", limiter, tripPlanRoute);
 app.use("/api/community", communityTravelGuideRoute);
 app.use("/api/favourites", favouriteRoute);
 
+//! heartbeat route for monitoring and keep the server alive on platform like render.com
+app.get("/api/health", async (req: Request, res: Response) => {
+  try {
+    // optional: check DB connection
+    await connectOnce();
+
+    return res.status(200).json({
+      status: "ok",
+      message: "pong",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "service unavailable",
+    });
+  }
+});
+
+
 //! Error handling middleware should be the last middleware for getting all the controller errors.
 app.use(errorHandlingMiddleware);
 
@@ -86,7 +107,6 @@ if(env.NODE_ENV === "production"){
     res.sendFile(path.join(frontendDist, "index.html"));
   });
 }
-
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
