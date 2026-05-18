@@ -15,7 +15,7 @@ import tripRoute from "./routes/trip.route.js";
 import tripPlanRoute from "./routes/tripPlan.route.js";
 import communityTravelGuideRoute from "./routes/communityTravelGuide.route.js";
 import favouriteRoute from "./routes/favourite.route.js";
-import serverless from "serverless-http";
+import deleteTempfileScheduler from "./utils/helpers/deleteTempFileScheduler.js";
 
 const app = express();
 const PORT = env.PORT;
@@ -25,7 +25,7 @@ const __dirname = path.dirname(__filename);
 app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: env.FRONTEND_URL,
+    origin: [env.FRONTEND_URL, env.PRODUCTION_URL],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -37,7 +37,6 @@ const limiter = rateLimit({
   limit: 100,
   standardHeaders: true,
   legacyHeaders: false,
-
 });
 
 app.use(async (req: Request, res: Response, next: NextFunction) => {
@@ -73,27 +72,23 @@ app.use("/api/favourites", favouriteRoute);
 
 //! Error handling middleware should be the last middleware for getting all the controller errors.
 app.use(errorHandlingMiddleware);
-// ❌ Remove this entire block — Vercel handles it via CDN
-/**
- * 
-  if(env.NODE_ENV === "production"){
+
+if(env.NODE_ENV === "production"){
     const __dirname = path.resolve();
 
     //serve static files from frontend/dist
     app.use(express.static(path.join(__dirname, "../frontend/dist")))
 
-    // handle SPA routing - Send all non-API routes to index.html
+    // handle SPA routing - Send all non-API routes to index.html - react app
     app.get("/{*any}", (req, res) => {
       res.sendFile(path.join(__dirname, "../frontend/dist/index.html"))
     })
-  }
- */
-
-// if (env.NODE_ENV !== "production"){
-//   app.listen(PORT, () => {
-//     console.log(`Server is running on port ${PORT}`);
-//   });
-// }
+}
 
 
-export const handler = serverless(app);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  deleteTempfileScheduler.start();
+});
+
+
