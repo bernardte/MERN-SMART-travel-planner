@@ -200,6 +200,32 @@ const Navbar = () => {
   // Shared mobile menu content (used on both home and non‑home headers)
   const mobileMenuContent = (
     <nav className="flex flex-col space-y-1 px-4 pb-6" role="navigation">
+      {/* User info section for mobile sidebar */}
+      {user && (
+        <div className="mb-4 border-b border-gray-200 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-300 to-cyan-500 text-sm font-semibold text-white shadow-md">
+              {user.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  className="h-10 w-10 rounded-full object-cover"
+                  alt=""
+                />
+              ) : (
+                displayName.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-900">
+                {displayName}
+              </p>
+              {displayEmail && (
+                <p className="text-xs text-gray-500">{displayEmail}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       {filteredNavItems.map((item) => (
         <Link
           key={item.label}
@@ -383,9 +409,9 @@ const Navbar = () => {
             {/* Right side */}
             <div className="flex items-center gap-3">
               {user ? (
-                renderUserMenu(false)
+                <div className="hidden md:block">{renderUserMenu(false)}</div>
               ) : (
-                <>
+                <div className="hidden items-center gap-3 md:flex">
                   <Link
                     to="/auth?mode=login"
                     className="rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 px-5 py-2 text-sm font-medium text-white shadow-md transition-all hover:shadow-lg hover:shadow-blue-500/25"
@@ -410,7 +436,7 @@ const Navbar = () => {
                       </motion.span>
                     </span>
                   </Link>
-                </>
+                </div>
               )}
 
               {/* Mobile menu button */}
@@ -493,7 +519,7 @@ const Navbar = () => {
 
           <div className="flex items-center gap-3">
             {!user ? (
-              <>
+              <div className="hidden items-center gap-3 md:flex">
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -537,9 +563,11 @@ const Navbar = () => {
                     </span>
                   </Link>
                 </motion.div>
-              </>
+              </div>
             ) : (
-              renderUserMenu(!isScrolled)
+              <div className="hidden md:block">
+                {renderUserMenu(!isScrolled)}
+              </div>
             )}
           </div>
 

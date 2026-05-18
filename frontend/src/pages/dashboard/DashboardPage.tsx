@@ -390,7 +390,7 @@ const DashboardPage = () => {
                       <button
                         onClick={() => handleTripDelete(trip._id)}
                         disabled={deletingId === trip._id}
-                        className="rounded-lg p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50"
+                        className="rounded-lg p-2 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50 sm:p-1.5"
                       >
                         {deletingId === trip._id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -401,27 +401,27 @@ const DashboardPage = () => {
                     </div>
 
                     {/* Bottom row: View + Edit + Share buttons */}
-                    <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3">
+                    <div className="mt-3 flex flex-col gap-2 border-t border-gray-100 pt-3 sm:flex-row sm:gap-2">
                       <button
                         onClick={() => navigate(`/trips/${trip._id}`)}
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-[1.02] hover:shadow-md"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:scale-[1.02] sm:flex-1"
                       >
                         <Eye className="h-3.5 w-3.5" />
                         View Trip
                       </button>
                       <button
                         onClick={() => navigate(`/trips/${trip._id}/edit`)}
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-violet-300 hover:text-violet-500"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] sm:flex-1"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                         Edit Trip
                       </button>
-
                       {trip.isTravelGuideCreated ? (
                         <Button
                           onClick={() =>
                             navigate(`/edit-travel-guide/${trip.tripPlanId}`)
                           }
+                          className="w-full sm:flex-1"
                         >
                           Edit Travel Guide
                         </Button>
@@ -430,7 +430,7 @@ const DashboardPage = () => {
                           onClick={() =>
                             navigate(`/create-travel-guide/${trip._id}`)
                           }
-                          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] hover:border-blue-300 hover:text-blue-500"
+                          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-1.5 text-xs font-semibold text-gray-600 transition-all hover:scale-[1.02] sm:flex-1"
                         >
                           <FileEdit className="h-3.5 w-3.5" />
                           Travel Guide Editor
