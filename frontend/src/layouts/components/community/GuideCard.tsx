@@ -92,6 +92,12 @@ const GuideCard: React.FC<{
     if (onDelete) onDelete(guide?._id);
     setShowDeleteDialog(false);
   };
+
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}/trip-plan/view/${guide.itinerary?._id}`;
+    navigator.clipboard.writeText(url);
+    showToast("success", "Link copied to clipboard!");
+  }
   
 
   return (
@@ -177,7 +183,7 @@ const GuideCard: React.FC<{
                   <Share2 className="mr-2 h-4 w-4 text-cyan-600" />
                   Share
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
                   <Copy className="mr-2 h-4 w-4 text-cyan-600" />
                   Copy Link
                 </DropdownMenuItem>
