@@ -276,7 +276,7 @@ const DashboardPage = () => {
       showToast("success", "Guide deleted successfully");
     } catch {
       showToast("error", "Failed to delete guide");
-    } 
+    }
   };
 
   //! frontend store the specific guide before preparing pass to post modal
@@ -288,7 +288,14 @@ const DashboardPage = () => {
     setSelectedGuide(guide);
     setEditModalOpen(true);
   };
-  
+
+  const handleCopyLink = (postId: string) => {
+    const url = `${window.location.origin}/trip-plan/view/${postId}`;
+
+    navigator.clipboard.writeText(url);
+    showToast("success", "Link copied to clipboard!");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8 lg:px-8">
@@ -599,7 +606,7 @@ const DashboardPage = () => {
                           <Share2 className="mr-2 h-4 w-4 text-cyan-600" />
                           Share
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer">
+                        <DropdownMenuItem onClick={() => handleCopyLink(guide.itinerary?._id ?? "")} className="cursor-pointer">
                           <Copy className="mr-2 h-4 w-4 text-cyan-600" />
                           Copy Link
                         </DropdownMenuItem>
