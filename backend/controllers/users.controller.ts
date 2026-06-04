@@ -95,7 +95,7 @@ const loginAccount = async (
     throw new AppError(401, "Invalid email or password.");
   }
 
-  const { accessToken } = generateTokensAndSetCookies(user._id, res);
+  const { accessToken, refreshToken } = generateTokensAndSetCookies(user._id, res);
   successApiResponse(res, 200, "Login successful", {
     _id: user._id,
     username: user.username,
@@ -105,6 +105,7 @@ const loginAccount = async (
     following: user.following,
     email: user.email,
     token: accessToken,
+    refreshToken,
   });
 };
 

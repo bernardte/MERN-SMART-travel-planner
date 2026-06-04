@@ -9,7 +9,12 @@ import { AppError } from "../utils/error_api_response.js";
 
 
 const getAccessTokenWithRefreshToken = async (req: Request, res: Response) => {
-  const token = req.cookies.refreshToken;
+  const authHeader = req.headers.authorization;
+  const bearerToken =
+    authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
+  const token = bearerToken || req.cookies.refreshToken;
   if (!token) {
     throw new AppError(401, "Unauthorized");
   }
@@ -21,12 +26,13 @@ const getAccessTokenWithRefreshToken = async (req: Request, res: Response) => {
     throw new AppError(404, "User not found");
   }
 
-  const { accessToken } = generateTokensAndSetCookies(user._id, res);
+  const { accessToken, refreshToken } = generateTokensAndSetCookies(user._id, res);
 
   user.password = ""; //? Remove password from user object
 
   successApiResponse(res, 201, "refresh token generated successfully!", {
     accessToken,
+    refreshToken,
   });
 };
 

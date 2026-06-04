@@ -142,7 +142,7 @@ const ViewTripPage = () => {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
               <Plane className="h-3.5 w-3.5 text-white" />
             </div>
-            <span className="text-sm font-semibold text-gray-800">TravelBuddy</span>
+            <span className="text-sm font-semibold text-gray-800">TravelLOG</span>
           </div>
         </div>
 

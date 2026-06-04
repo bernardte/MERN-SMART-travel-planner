@@ -26,7 +26,7 @@ function generateTokensAndSetCookies(userId: ObjectId, res: Response) {
     secure: env.NODE_ENV === "production", //? return boolean  ? true : false
   });
 
-  return { accessToken };
+  return { accessToken, refreshToken };
 }
 
 export default generateTokensAndSetCookies;

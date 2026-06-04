@@ -38,7 +38,7 @@ const Footer = () => {
                 <span className="text-lg font-bold text-white">✈</span>
               </div>
               <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-xl font-bold text-transparent">
-                TravelBuddy
+                TravelLOG
               </span>
             </div>
             <p className="max-w-xs text-sm leading-relaxed text-gray-500">
@@ -117,7 +117,7 @@ const Footer = () => {
               <ul className="space-y-2 text-sm text-gray-500">
                 <li className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-blue-400" />
-                  <span>hello@travelbuddy.com</span>
+                  <span>hello@travellog.com</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-blue-400" />
@@ -168,7 +168,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between border-t border-gray-100 pt-8 text-center sm:flex-row">
           <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()} TravelBuddy. All rights reserved.
+            © {new Date().getFullYear()} TravelLOG. All rights reserved.
           </p>
           <div className="mt-3 flex gap-4 text-xs text-gray-400 sm:mt-0">
             <Link

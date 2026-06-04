@@ -391,7 +391,7 @@ const EditTripPage = () => {
               <Plane className="h-3.5 w-3.5 text-white" />
             </div>
             <span className="text-sm font-semibold text-gray-800">
-              TravelBuddy
+              TravelLOG
             </span>
           </div>
         </div>

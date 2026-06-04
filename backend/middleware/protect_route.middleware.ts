@@ -11,7 +11,12 @@ export interface DecodedToken extends JwtPayload {
 
 export const protectRoute = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies.accessToken;
+    const authHeader = req.headers.authorization;
+    const bearerToken =
+      authHeader && authHeader.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : null;
+    const token = bearerToken || req.cookies.accessToken;
     if (!token) {
       throw new AppError(401, "Unauthorized");
     }
