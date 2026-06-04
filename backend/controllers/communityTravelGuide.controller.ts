@@ -391,6 +391,7 @@ const getPersonalizedRecommendation = async (req: Request, res: Response) => {
       .filter(Boolean)
       .slice(0, 3);
 
+      
     return successApiResponse(res, 200, "Cold start recommendation", filtered);
   }
 
