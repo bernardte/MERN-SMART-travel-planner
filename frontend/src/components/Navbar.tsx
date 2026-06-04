@@ -322,7 +322,7 @@ const Navbar = () => {
           >
             <div className="flex items-center justify-between border-b border-gray-100 p-4">
               <span className="text-lg font-bold text-gray-800">
-                TravelBuddy
+                TravelLOG
               </span>
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -365,7 +365,7 @@ const Navbar = () => {
                   isScrolled ? "text-gray-800" : "text-gray-900"
                 }`}
               >
-                TravelBuddy
+                TravelLOG
               </span>
             </Link>
 
@@ -489,7 +489,7 @@ const Navbar = () => {
                   isScrolled ? "text-gray-800" : "text-white"
                 }`}
               >
-                TravelBuddy
+                TravelLOG
               </span>
             </Link>
 

@@ -288,6 +288,7 @@ const DashboardPage = () => {
     setSelectedGuide(guide);
     setEditModalOpen(true);
   };
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8 lg:px-8">

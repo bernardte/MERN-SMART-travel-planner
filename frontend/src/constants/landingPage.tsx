@@ -144,7 +144,7 @@ export const testimonials: Testimonial[] = [
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop",
     rating: 5,
     comment:
-      "TravelBuddy completely transformed how I plan my trips. The community guides are incredibly helpful and the itinerary builder saved me hours of research!",
+      "TravelLOG completely transformed how I plan my trips. The community guides are incredibly helpful and the itinerary builder saved me hours of research!",
   },
   {
     name: "David Kim",
@@ -198,7 +198,7 @@ export const testimonials: Testimonial[] = [
       "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=80&h=80&fit=crop",
     rating: 5,
     comment:
-      "TravelBuddy helped me find amazing cafés, hidden neighborhoods, and budget stays I would never have found myself.",
+      "TravelLOG helped me find amazing cafés, hidden neighborhoods, and budget stays I would never have found myself.",
   },
   {
     name: "Lucas Mendes",
