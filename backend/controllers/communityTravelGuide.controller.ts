@@ -333,10 +333,7 @@ const savedPost = async (req: Request, res: Response) => {
   );
 };
 
-const getPersonalizedRecommendation = async (
-  req: Request,
-  res: Response,
-) => {
+const getPersonalizedRecommendation = async (req: Request, res: Response) => {
   const userId = req.user?._id;
 
   if (!userId) throw new AppError(401, "Unauthorized");
@@ -367,12 +364,29 @@ const getPersonalizedRecommendation = async (
 
     const filtered = coldStart
       .map((post) => {
-        // exclude on post
-        if (post.authorId._id.toString() === userId.toString()) {
-          return null;
-        }
+        if (!post.authorId) return null;
+        if (post.authorId._id.toString() === userId.toString()) return null;
 
-        return post;
+        const obj = post.toObject();
+        const isLiked = obj.likes?.some(
+          (id: Types.ObjectId | string) => id.toString() === userId.toString(),
+        );
+        const isSaved = obj.postSavedByUser?.some(
+          (id: Types.ObjectId | string) => id.toString() === userId.toString(),
+        );
+
+        return {
+          ...obj,
+          author: obj.authorId,
+          authorId: undefined,
+          likes: obj.likes?.length || 0,
+          isLiked: isLiked ?? false,
+          saves: obj.postSavedByUser?.length || 0,
+          isSaved: isSaved ?? false,
+          itinerary: obj.itineraryId
+            ? { _id: obj.itineraryId, title: obj.title, country: obj.country }
+            : null,
+        };
       })
       .filter(Boolean)
       .slice(0, 3);
@@ -382,6 +396,7 @@ const getPersonalizedRecommendation = async (
 
   const scores = guides.map((guide) => {
     //! exclude my own publish post
+    if (!guide.authorId) return null;
     if (guide.authorId._id.toString() === userId.toString()) {
       return null;
     }
