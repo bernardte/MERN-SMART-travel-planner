@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
-import ResetPasswordForm from "./ResetPasswordForm";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -136,13 +135,6 @@ const AuthForm = () => {
                     whileTap="tap"
                     className="text-center"
                   >
-                    {/* <Button
-                      variant="link"
-                      className="h-auto p-0 text-sm text-gray-500 hover:text-blue-700"
-                      onClick={() => handleModeChange("reset")}
-                    >
-                      Forgot password?
-                    </Button> */}
                   </motion.div>
                 </div>
               </>
