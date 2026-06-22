@@ -136,13 +136,13 @@ const AuthForm = () => {
                     whileTap="tap"
                     className="text-center"
                   >
-                    <Button
+                    {/* <Button
                       variant="link"
                       className="h-auto p-0 text-sm text-gray-500 hover:text-blue-700"
                       onClick={() => handleModeChange("reset")}
                     >
                       Forgot password?
-                    </Button>
+                    </Button> */}
                   </motion.div>
                 </div>
               </>
@@ -198,7 +198,7 @@ const AuthForm = () => {
               </div>
             )}
 
-            {mode === "reset" && (
+            {/* {mode === "reset" && (
               <>
                 <div className="text-center">
                   <h1 className="text-2xl font-bold text-blue-600">
@@ -210,7 +210,7 @@ const AuthForm = () => {
                 </div>
                 <ResetPasswordForm />
               </>
-            )}
+            )} */}
           </motion.div>
         </AnimatePresence>
       </motion.div>
