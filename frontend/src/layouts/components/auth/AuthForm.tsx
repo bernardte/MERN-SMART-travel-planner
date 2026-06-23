@@ -189,20 +189,6 @@ const AuthForm = () => {
                 </div>
               </div>
             )}
-
-            {/* {mode === "reset" && (
-              <>
-                <div className="text-center">
-                  <h1 className="text-2xl font-bold text-blue-600">
-                    Reset Password
-                  </h1>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Enter your email to receive a reset link
-                  </p>
-                </div>
-                <ResetPasswordForm />
-              </>
-            )} */}
           </motion.div>
         </AnimatePresence>
       </motion.div>
