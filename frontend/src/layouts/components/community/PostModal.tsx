@@ -257,7 +257,6 @@ const PostModal: React.FC<{
     formState: { errors },
   } = form;
   const watchedItineraryId = watch("itineraryId");
-  console.log("FORM ERRORS:", errors);
 
   // Reset form when modal opens/closes or mode changes
   useEffect(() => {
@@ -304,7 +303,6 @@ const PostModal: React.FC<{
   }, [itinerariesError, showToast]);
 
   const handleItinerarySelect = (value: string) => {
-    console.log(value);
     if (!itineraries) return;
 
     if (value === "none") {
@@ -335,7 +333,6 @@ const PostModal: React.FC<{
   }, [watchedItineraryId, itineraries, setValue]);
 
   const onSubmit = async (data: FormValues) => {
-    console.log("Form submitted with data:", data);
     if (!user?._id) return;
 
     const rawData = {
