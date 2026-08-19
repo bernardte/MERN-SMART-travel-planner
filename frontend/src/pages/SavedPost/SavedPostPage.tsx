@@ -210,9 +210,7 @@ const SavedPostsPage = () => {
               const isLoadingFollow = post.author?._id
                 ? loadingMap[post.author._id]
                 : false;
-
-              console.log("privacy: ", post);
-
+                
               return (
                 <div
                   key={post._id}
@@ -479,7 +477,7 @@ const SavedPostsPage = () => {
                                 <Button
                                   onClick={() => {
                                     navigate(
-                                      `/trip-plan/view/${post.itinerary?._id}`,
+                                      `/trip-plan/view/${post.itineraryId}`,
                                     );
                                   }}
                                   className="group/btn inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2 text-sm font-medium text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"

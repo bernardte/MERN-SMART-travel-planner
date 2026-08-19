@@ -167,7 +167,6 @@ const GuideCard: React.FC<{
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem className="cursor-pointer"
                   onClick={() => {
-                    console.log("guide._id:", guide._id);
                     // const id =
                     //   typeof guide.itinerary?._id === "object"
                     //     ? guide.itinerary?._id
