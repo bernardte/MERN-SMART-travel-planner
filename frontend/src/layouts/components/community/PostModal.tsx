@@ -216,18 +216,15 @@ const PostModal: React.FC<{
   const [uploadProgress, setUploadProgress] = useState(0);
   const { showToast } = useToast();
   const user = useAuthStore((state) => state.user);
-  const {
-    itineraries,
-    itinerariesError,
-    getSpecificUserItineraries,
-  } = useCommunityTravelGuideStore(
-    useShallow((state) => ({
-      itineraries: state.itineraries,
-      itinerariesLoading: state.loading.itineraries,
-      itinerariesError: state.error.itinerariesError,
-      getSpecificUserItineraries: state.getSpecificUserItineraries,
-    })),
-  );
+  const { itineraries, itinerariesError, getSpecificUserItineraries } =
+    useCommunityTravelGuideStore(
+      useShallow((state) => ({
+        itineraries: state.itineraries,
+        itinerariesLoading: state.loading.itineraries,
+        itinerariesError: state.error.itinerariesError,
+        getSpecificUserItineraries: state.getSpecificUserItineraries,
+      })),
+    );
   // Extend the schema for form handling
   const schema =
     mode === "create" ? travelGuideCreateSchema : travelGuideEditSchema;
@@ -254,7 +251,7 @@ const PostModal: React.FC<{
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: {},
   } = form;
   const watchedItineraryId = watch("itineraryId");
 
